@@ -22,7 +22,6 @@ public class TopDownMovement : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _inputs = GetComponent<PlayerInputsManager>();
 
-        _rb.bodyType = RigidbodyType2D.Kinematic;
         _rb.linearDamping = _groundDrag;
         _gfx = GetComponent<Player>().gfx;
 
