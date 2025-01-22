@@ -355,7 +355,7 @@ GameObject:
   - component: {fileID: 17071188769343318}
   - component: {fileID: 2507646553171853749}
   m_Layer: 0
-  m_Name: Player
+  m_Name: Player(PlatformerMovement)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

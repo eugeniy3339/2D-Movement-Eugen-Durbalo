@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class Dash : MonoBehaviour
 {
+    private Player _playerScript;
     private PlayerInputsManager _playerInputsManager;
     private Rigidbody2D _rb;
 
@@ -25,6 +26,7 @@ public class Dash : MonoBehaviour
 
     private void Awake()
     {
+        _playerScript = GetComponent<Player>();
         _playerInputsManager = GetComponent<PlayerInputsManager>();
         _rb = GetComponent<Rigidbody2D>();
 
@@ -39,14 +41,25 @@ public class Dash : MonoBehaviour
 
     public void DashAction()
     {
-        if(!GetComponent<PlatformerMovement>().canWalk) return;
-        if (_curDashCooldown < _dashCooldown) return;
+        if(_playerScript.playerMovementType == PlayerMovementType.Platformer)
+        {
+            if (!GetComponent<PlatformerMovement>().canWalk) return;
+            if (_curDashCooldown < _dashCooldown) return;
 
-        GetComponent<PlatformerMovement>().canWalk = false;
-        StartCoroutine(DashCoro());
+            GetComponent<PlatformerMovement>().canWalk = false;
+            StartCoroutine(PlatformerDashCoro());
+        }
+        else if (_playerScript.playerMovementType == PlayerMovementType.Topdown)
+        {
+            if (!GetComponent<TopDownMovement>().canWalk) return;
+            if (_curDashCooldown < _dashCooldown) return;
+
+            GetComponent<TopDownMovement>().canWalk = false;
+            StartCoroutine(TopDownDashCoro());
+        }
     }
 
-    private IEnumerator DashCoro()
+    private IEnumerator PlatformerDashCoro()
     {
         Vector2 moveInput = _playerInputsManager.lastMoveInputXY.normalized;
         Vector2 startPosition = transform.position;
@@ -73,6 +86,33 @@ public class Dash : MonoBehaviour
         GetComponent<PlatformerMovement>().canWalk = true;
         //GetComponent<Animator>().SetBool("Dashing", false);
         _gfx.transform.up = Vector3.up;
+        _curDashCooldown = 0f;
+    }
+
+    private IEnumerator TopDownDashCoro()
+    {
+        Vector2 moveInput = _playerInputsManager.lastMoveInputXY.normalized;
+        Vector2 startPosition = transform.position;
+
+        float dashTime = 0f;
+
+        Vector2 lastTrailSpawnTransform = transform.position;
+
+        while (Vector2.Distance(transform.position, startPosition) < _distance)
+        {
+            //GetComponent<Animator>().SetBool("Dashing", true);
+            dashTime += Time.deltaTime;
+            _rb.linearVelocity = moveInput * _dashSpeed;
+
+            yield return new WaitForSeconds(Time.deltaTime);
+
+            if (_trailLifeTime != 0f) { if (Vector2.Distance(transform.position, lastTrailSpawnTransform) >= _distance / 4) { StartCoroutine("SpawnTrail"); lastTrailSpawnTransform = transform.position; } }
+            if (dashTime >= _maxDashTime) break;
+        }
+
+        _rb.linearVelocityY = 0f;
+        GetComponent<TopDownMovement>().canWalk = true;
+        //GetComponent<Animator>().SetBool("Dashing", false);
         _curDashCooldown = 0f;
     }
 

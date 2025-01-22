@@ -24,5 +24,13 @@ public class Run : MonoBehaviour
             else
                 GetComponent<PlatformerMovement>().speed = GetComponent<PlatformerMovement>().walkSpeed;
         }
+        else if (_playerScript.playerMovementType == PlayerMovementType.Topdown)
+        {
+            GetComponent<TopDownMovement>().run = _run;
+            if (_run)
+                GetComponent<TopDownMovement>().speed = GetComponent<TopDownMovement>().runSpeed;
+            else
+                GetComponent<TopDownMovement>().speed = GetComponent<TopDownMovement>().walkSpeed;
+        }
     }
 }
