@@ -1,5 +1,11 @@
 using UnityEngine;
 
+/*
+ 
+This script is a module for player movement and wouldnt work without a player, player movement and player inputs manager scripts. (doesnt work with TopDown movement)
+ 
+ */
+
 public class Jump : MonoBehaviour
 {
     private Player _playerScript;

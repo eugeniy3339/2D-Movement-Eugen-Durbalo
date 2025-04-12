@@ -1,6 +1,12 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/*
+ 
+This script is a module for player movement and wouldnt work without a player, player movement and player inputs manager scripts.
+ 
+ */
+
 public class Run : MonoBehaviour
 {
     private Player _playerScript;

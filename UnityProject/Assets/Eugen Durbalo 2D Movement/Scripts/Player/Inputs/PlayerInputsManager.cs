@@ -1,14 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/*
+ 
+This script is handling player inputs;
+ 
+ */
+
 public class PlayerInputsManager : MonoBehaviour
 {
     private PlayerInputs _inputs;
     private InputAction _moveAction;
 
-    public Vector2 moveInputValue;
-    public Vector2 lastMoveInputXY;
-    public float lastMoveInputX;
+    [HideInInspector] public Vector2 moveInputValue;
+    [HideInInspector] public Vector2 lastMoveInputXY;
+    [HideInInspector] public float lastMoveInputX;
 
     private void OnEnable()
     {

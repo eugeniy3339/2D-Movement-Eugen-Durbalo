@@ -1,6 +1,12 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
+/*
+ 
+This script is needed to set up your character. It is used as a player Singleton (if you dont knowq what is Singletons check out this video: https://www.youtube.com/watch?v=mpM0C6quQjs);
+
+ */
+
 public enum PlayerMovementType
 {
     None,
@@ -12,8 +18,8 @@ public class Player : MonoBehaviour
 {
     public static Player Instance;
 
-    public PlayerMovementType playerMovementType;
-    public Transform gfx;
+    [Tooltip("Player movement type (You dont have to select one if you have a movement script on player gameObject)")] public PlayerMovementType playerMovementType;
+    [Tooltip("Your character Graphics (need to rotate your character while dashing)")] public Transform gfx;
 
     private void Awake()
     {
