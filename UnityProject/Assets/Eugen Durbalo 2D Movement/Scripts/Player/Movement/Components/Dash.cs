@@ -15,6 +15,7 @@ public class Dash : MonoBehaviour
     private Player _playerScript;
     private PlayerInputsManager _playerInputsManager;
     private Rigidbody2D _rb;
+    private Animator _animator;
 
     [Header("Dash Settings")]
     [SerializeField] private float _distance = 5f;
@@ -32,11 +33,12 @@ public class Dash : MonoBehaviour
 
     private void Awake()
     {
-        _playerScript = GetComponent<Player>();
-        _playerInputsManager = GetComponent<PlayerInputsManager>();
-        _rb = GetComponent<Rigidbody2D>();
+        _playerScript = GetComponentInChildren<Player>();
+        _playerInputsManager = GetComponentInChildren<PlayerInputsManager>();
+        _rb = GetComponentInChildren<Rigidbody2D>();
+        _animator = GetComponentInChildren<Animator>();
 
-        _gfx = GetComponent<Player>().gfx;
+        _gfx = GetComponentInChildren<Player>().gfx;
     }
 
     private void Update()
@@ -49,18 +51,18 @@ public class Dash : MonoBehaviour
     {
         if(_playerScript.playerMovementType == PlayerMovementType.Platformer)
         {
-            if (!GetComponent<PlatformerMovement>().canWalk) return;
+            if (!GetComponentInChildren<PlatformerMovement>().canWalk) return;
             if (_curDashCooldown < _dashCooldown) return;
 
-            GetComponent<PlatformerMovement>().canWalk = false;
+            GetComponentInChildren<PlatformerMovement>().canWalk = false;
             StartCoroutine(PlatformerDashCoro());
         }
         else if (_playerScript.playerMovementType == PlayerMovementType.Topdown)
         {
-            if (!GetComponent<TopDownMovement>().canWalk) return;
+            if (!GetComponentInChildren<TopDownMovement>().canWalk) return;
             if (_curDashCooldown < _dashCooldown) return;
 
-            GetComponent<TopDownMovement>().canWalk = false;
+            GetComponentInChildren<TopDownMovement>().canWalk = false;
             StartCoroutine(TopDownDashCoro());
         }
     }
@@ -74,11 +76,13 @@ public class Dash : MonoBehaviour
 
         Vector2 lastTrailSpawnTransform = transform.position;
 
-        _gfx.transform.up = _playerInputsManager.lastMoveInputXY.normalized;
+        //_gfx.transform.up = _playerInputsManager.lastMoveInputXY.normalized;
+
+        _animator.Play("StartDash");
 
         while (Vector2.Distance(transform.position, startPosition) < _distance)
         {
-            //GetComponent<Animator>().SetBool("Dashing", true);
+            _animator.SetBool("Dash", true);
             dashTime += Time.deltaTime;
             _rb.linearVelocity = moveInput * _dashSpeed;
 
@@ -89,9 +93,9 @@ public class Dash : MonoBehaviour
         }
 
         _rb.linearVelocityY = 0f;
-        GetComponent<PlatformerMovement>().canWalk = true;
-        //GetComponent<Animator>().SetBool("Dashing", false);
-        _gfx.transform.up = Vector3.up;
+        GetComponentInChildren<PlatformerMovement>().canWalk = true;
+        _animator.SetBool("Dash", false);
+        //_gfx.transform.up = Vector3.up;
         _curDashCooldown = 0f;
     }
 
@@ -106,7 +110,7 @@ public class Dash : MonoBehaviour
 
         while (Vector2.Distance(transform.position, startPosition) < _distance)
         {
-            //GetComponent<Animator>().SetBool("Dashing", true);
+            //_animator.SetBool("Dash", true);
             dashTime += Time.deltaTime;
             _rb.linearVelocity = moveInput * _dashSpeed;
 
@@ -117,8 +121,8 @@ public class Dash : MonoBehaviour
         }
 
         _rb.linearVelocityY = 0f;
-        GetComponent<TopDownMovement>().canWalk = true;
-        //GetComponent<Animator>().SetBool("Dashing", false);
+        GetComponentInChildren<TopDownMovement>().canWalk = true;
+        //_animator.SetBool("Dash", false);
         _curDashCooldown = 0f;
     }
 
@@ -126,7 +130,7 @@ public class Dash : MonoBehaviour
     {
         GameObject trail = Instantiate(_playerTrailPrefab, transform.position, _gfx.transform.rotation);
         if(_trailSprite != null) trail.GetComponent<SpriteRenderer>().sprite = _trailSprite;
-        else trail.GetComponent<SpriteRenderer>().sprite = _gfx.GetComponent<SpriteRenderer>().sprite;
+        else trail.GetComponentInChildren<SpriteRenderer>().sprite = _gfx.GetComponentInChildren<SpriteRenderer>().sprite;
         yield return new WaitForSeconds(_trailLifeTime);
         Destroy(trail);
     }

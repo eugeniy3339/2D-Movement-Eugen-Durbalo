@@ -15,7 +15,7 @@ public class Run : MonoBehaviour
 
     private void Awake()
     {
-        _playerScript = GetComponent<Player>();
+        _playerScript = GetComponentInChildren<Player>();
     }
 
     public void RunAction()
@@ -24,19 +24,19 @@ public class Run : MonoBehaviour
 
         if (_playerScript.playerMovementType == PlayerMovementType.Platformer)
         {
-            GetComponent<PlatformerMovement>().run = _run;
+            GetComponentInChildren<PlatformerMovement>().run = _run;
             if (_run)
-                GetComponent<PlatformerMovement>().speed = GetComponent<PlatformerMovement>().runSpeed;
+                GetComponentInChildren<PlatformerMovement>().speed = GetComponentInChildren<PlatformerMovement>().runSpeed;
             else
-                GetComponent<PlatformerMovement>().speed = GetComponent<PlatformerMovement>().walkSpeed;
+                GetComponentInChildren<PlatformerMovement>().speed = GetComponentInChildren<PlatformerMovement>().walkSpeed;
         }
         else if (_playerScript.playerMovementType == PlayerMovementType.Topdown)
         {
-            GetComponent<TopDownMovement>().run = _run;
+            GetComponentInChildren<TopDownMovement>().run = _run;
             if (_run)
-                GetComponent<TopDownMovement>().speed = GetComponent<TopDownMovement>().runSpeed;
+                GetComponentInChildren<TopDownMovement>().speed = GetComponentInChildren<TopDownMovement>().runSpeed;
             else
-                GetComponent<TopDownMovement>().speed = GetComponent<TopDownMovement>().walkSpeed;
+                GetComponentInChildren<TopDownMovement>().speed = GetComponentInChildren<TopDownMovement>().walkSpeed;
         }
     }
 }

@@ -42,6 +42,7 @@ public class PlatformerMovement : MonoBehaviour
 {
     private Rigidbody2D _rb;
     private PlayerInputsManager _inputs;
+    private Animator _animator;
 
     private Transform _gfx;
 
@@ -65,10 +66,11 @@ public class PlatformerMovement : MonoBehaviour
     private void Awake()
     {
         //if (GetComponent<TopDownMovement>()) {print("There is another movement script!!!"); this.enabled = false; }
-        _rb = GetComponent<Rigidbody2D>();
-        _inputs = GetComponent<PlayerInputsManager>();
+        _rb = GetComponentInChildren<Rigidbody2D>();
+        _inputs = GetComponentInChildren<PlayerInputsManager>();
+        _animator = GetComponentInChildren<Animator>();
 
-        _gfx = GetComponent<Player>().gfx;
+        _gfx = GetComponentInChildren<Player>().gfx;
 
         speed = walkSpeed;
     }
@@ -92,8 +94,8 @@ public class PlatformerMovement : MonoBehaviour
 
         float direction = _inputs.moveInputValue.x;
 
-        /*if (!run) _animator.SetFloat("MoveInputValue", direction.magnitude * 0.5f, _animSmoothTime, Time.deltaTime);
-        else _animator.SetFloat("MoveInputValue", direction.magnitude, _animSmoothTime, Time.deltaTime);*/
+        if (!run) _animator.SetFloat("x", Mathf.Abs(direction) * 0.5f);
+        else _animator.SetFloat("x", Mathf.Abs(direction));
 
         if(_inputs.lastMoveInputX > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
         else if(_inputs.lastMoveInputX < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
@@ -117,7 +119,7 @@ public class PlatformerMovement : MonoBehaviour
     {
         isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.1f, _ground);
 
-        //_animator.SetBool("Falling", !_isGrounded);
+        _animator.SetBool("InAir", !isGrounded);
 
         if (!canWalk) return;
 

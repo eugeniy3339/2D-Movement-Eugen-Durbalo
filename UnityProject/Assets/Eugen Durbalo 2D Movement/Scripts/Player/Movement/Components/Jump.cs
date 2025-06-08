@@ -10,6 +10,7 @@ public class Jump : MonoBehaviour
 {
     private Player _playerScript;
     private Rigidbody2D _rb;
+    private Animator _animator;
 
     [SerializeField] private float _jumpHeight;
     [SerializeField] private float _jumpCooldown = 0.1f;
@@ -18,8 +19,9 @@ public class Jump : MonoBehaviour
 
     private void Awake()
     {
-        _playerScript = GetComponent<Player>();
-        _rb = GetComponent<Rigidbody2D>();
+        _playerScript = GetComponentInChildren<Player>();
+        _rb = GetComponentInChildren<Rigidbody2D>();
+        _animator = GetComponentInChildren<Animator>();
     }
 
     public void JumpAction()
@@ -35,6 +37,8 @@ public class Jump : MonoBehaviour
 
                 _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
                 _rb.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
+
+                _animator.Play("Jumping");
 
                 Invoke("ResetJump", _jumpCooldown);
             }
