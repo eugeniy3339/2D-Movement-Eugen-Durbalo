@@ -35,5 +35,4 @@ You can also customize various variables to suit your needs—for example, movem
 Feel free to modify the scripts and distribute this project as you wish — https://en.wikipedia.org/wiki/MIT_License
 
 Credits: 
-2D Pixel Art Character Template Asset Pack -
-https://zegley.itch.io/2d-platformermetroidvania-asset-pack
+2D Pixel Art Character Template Asset Pack - https://zegley.itch.io/2d-platformermetroidvania-asset-pack
