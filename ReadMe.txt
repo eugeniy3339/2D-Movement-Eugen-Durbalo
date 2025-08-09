@@ -33,3 +33,7 @@ Now you have a working player in your scene. You can add various modules to it, 
 You can also customize various variables to suit your needs—for example, movement speed, jump height, the maximum slope angle the player can walk on, player height (used for raycast length), and more.
 
 Feel free to modify the scripts and distribute this project as you wish — https://en.wikipedia.org/wiki/MIT_License
+
+Credits: 
+2D Pixel Art Character Template Asset Pack -
+https://zegley.itch.io/2d-platformermetroidvania-asset-pack
