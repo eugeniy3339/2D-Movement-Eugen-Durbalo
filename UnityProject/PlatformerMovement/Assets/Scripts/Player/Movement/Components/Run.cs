@@ -13,6 +13,7 @@ public enum RunMode
     Hold
 }
 
+[RequireComponent(typeof(Movement))]
 public class Run : PlayerComponent
 {
     private Player _player;

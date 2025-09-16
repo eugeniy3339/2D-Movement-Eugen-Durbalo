@@ -8,13 +8,6 @@ This script is needed to set up your character. It is used as a player Singleton
 
  */
 
-public enum PlayerMovementType
-{
-    None,
-    Platformer,
-    Topdown
-}
-
 [RequireComponent(typeof(Movement))]
 public class Player : MonoBehaviour
 {
@@ -22,7 +15,6 @@ public class Player : MonoBehaviour
     public Movement movementScript;
     public List<PlayerComponent> components;
 
-    [Tooltip("Player movement type (You dont have to select one if you have a movement script on player gameObject)")] public PlayerMovementType playerMovementType;
     [Tooltip("Your character Graphics (need to rotate your character while dashing)")] public Transform gfx;
 
     private void Awake()

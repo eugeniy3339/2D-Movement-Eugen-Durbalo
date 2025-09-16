@@ -10,6 +10,8 @@ This script is a module for player movement and wouldnt work without a player, p
  
  */
 
+[RequireComponent(typeof(Movement))]
+[RequireComponent(typeof(Rigidbody))]
 public class Dash : PlayerComponent
 {
     private Player _player;
