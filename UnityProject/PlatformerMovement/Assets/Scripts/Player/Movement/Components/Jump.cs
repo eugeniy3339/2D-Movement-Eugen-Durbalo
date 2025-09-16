@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /*
  
@@ -6,48 +7,91 @@ This script is a module for player movement and wouldnt work without a player, p
  
  */
 
-public class Jump : MonoBehaviour
+[RequireComponent(typeof(Rigidbody))]
+public class Jump : PlayerComponent
 {
-    private Player _playerScript;
-    private Rigidbody2D _rb;
+    private Player _player;
+    private Rigidbody2D _rigidbody;
     private Animator _animator;
 
     [SerializeField] private float _jumpHeight;
-    [SerializeField] private float _jumpCooldown = 0.1f;
+    [SerializeField] private float _minJumpCooldowm = 0.1f;
+    private float _curJumpCooldown;
 
     private bool _canJump = true;
+    private bool _jumping;
+    private bool _canceledJump;
 
-    private void Awake()
+    private void Start()
     {
-        _playerScript = GetComponentInChildren<Player>();
-        _rb = GetComponentInChildren<Rigidbody2D>();
+        _player = Player.Instance;
+        _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
     }
 
-    public void JumpAction()
+    private void Update()
+    {
+        ResetJump();
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if(context.started)
+        {
+            JumpAction();
+        }
+        else if(context.canceled)
+        {
+            CancelJumpAction();
+        }
+    }
+
+    private void JumpAction()
     {
         if(!_canJump) return;
 
-        if(_playerScript.playerMovementType == PlayerMovementType.Platformer)
+        if (_player.movementScript.isGrounded)
         {
-            if(GetComponent<Movement>().isGrounded)
-            {
-                GetComponent<Movement>().slopesSpeedControl = false;
-                _canJump = false;
+            _jumping = true;
+            _player.movementScript.slopesSpeedControl = false;
+            _canJump = false;
+            _canceledJump = false;
+            _curJumpCooldown = 0f;
 
-                _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0f);
-                _rb.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
+            _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
+            _rigidbody.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
 
-                _animator.Play("Jumping");
+            _animator.Play("Jumping");
+        }
+    }
 
-                Invoke("ResetJump", _jumpCooldown);
-            }
+    private void CancelJumpAction()
+    {
+        if (!_canceledJump && _jumping && _rigidbody.linearVelocity.y > 0f)
+        {
+            _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
+            _player.movementScript.SetGravityScale(false);
+            _canceledJump = true;
         }
     }
 
     private void ResetJump()
     {
-        GetComponent<Movement>().slopesSpeedControl = true;
-        _canJump = true;
+        if(_curJumpCooldown < _minJumpCooldowm)
+        {
+            _curJumpCooldown += Time.deltaTime;
+        }
+        else
+        {
+            if (_jumping)
+            {
+                if (_player.movementScript.isGrounded)
+                {
+                    _jumping = false;
+                    _player.movementScript.slopesSpeedControl = true;
+                    _canJump = true;
+                }
+            }
+        }
     }
 }

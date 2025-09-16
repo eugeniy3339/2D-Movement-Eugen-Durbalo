@@ -10,11 +10,10 @@ This script is a module for player movement and wouldnt work without a player, p
  
  */
 
-public class Dash : MonoBehaviour
+public class Dash : PlayerComponent
 {
-    private Player _playerScript;
-    private PlayerInputsManager _playerInputsManager;
-    private Rigidbody2D _rb;
+    private Player _player;
+    private Rigidbody2D _rigidbody;
     private Animator _animator;
 
     [Header("Dash Settings")]
@@ -31,14 +30,13 @@ public class Dash : MonoBehaviour
     [SerializeField] private Sprite _trailSprite;
     [SerializeField] private float _trailLifeTime;
 
-    private void Awake()
+    private void Start()
     {
-        _playerScript = GetComponentInChildren<Player>();
-        _playerInputsManager = GetComponentInChildren<PlayerInputsManager>();
-        _rb = GetComponentInChildren<Rigidbody2D>();
+        _player = Player.Instance;
+        _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
 
-        _gfx = GetComponentInChildren<Player>().gfx;
+        _gfx = _player.gfx;
     }
 
     private void Update()
@@ -47,21 +45,26 @@ public class Dash : MonoBehaviour
         if(_dashCooldownSlider != null) _dashCooldownSlider.value = _curDashCooldown;
     }
 
-    public void DashAction()
+    public void OnDash(InputAction.CallbackContext context)
     {
-        if(_playerScript.playerMovementType == PlayerMovementType.Platformer)
+        if(context.started)
         {
-            if (!GetComponentInChildren<Movement>().canWalk) return;
-            if (_curDashCooldown < _dashCooldown) return;
-
-            GetComponentInChildren<Movement>().canWalk = false;
-            StartCoroutine(PlatformerDashCoro());
+            DashAction();
         }
+    }
+
+    private void DashAction()
+    {
+        if (!_player.movementScript.canWalk) return;
+        if (_curDashCooldown < _dashCooldown) return;
+
+        _player.movementScript.canWalk = false;
+        StartCoroutine(PlatformerDashCoro());
     }
 
     private IEnumerator PlatformerDashCoro()
     {
-        Vector2 moveInput = _playerInputsManager.lastMoveInputXY.normalized;
+        Vector2 moveInput = _player.movementScript.lastMoveInputValue.normalized;
         Vector2 startPosition = transform.position;
 
         float dashTime = 0f;
@@ -76,7 +79,7 @@ public class Dash : MonoBehaviour
         {
             _animator.SetBool("Dash", true);
             dashTime += Time.deltaTime;
-            _rb.linearVelocity = moveInput * _dashSpeed;
+            _rigidbody.linearVelocity = moveInput * _dashSpeed;
 
             yield return new WaitForSeconds(Time.deltaTime);
 
@@ -84,36 +87,10 @@ public class Dash : MonoBehaviour
             if (dashTime >= _maxDashTime) break;
         }
 
-        _rb.linearVelocityY = 0f;
-        GetComponentInChildren<Movement>().canWalk = true;
+        _rigidbody.linearVelocityY = 0f;
+        _player.movementScript.canWalk = true;
         _animator.SetBool("Dash", false);
         //_gfx.transform.up = Vector3.up;
-        _curDashCooldown = 0f;
-    }
-
-    private IEnumerator TopDownDashCoro()
-    {
-        Vector2 moveInput = _playerInputsManager.lastMoveInputXY.normalized;
-        Vector2 startPosition = transform.position;
-
-        float dashTime = 0f;
-
-        Vector2 lastTrailSpawnTransform = transform.position;
-
-        while (Vector2.Distance(transform.position, startPosition) < _distance)
-        {
-            //_animator.SetBool("Dash", true);
-            dashTime += Time.deltaTime;
-            _rb.linearVelocity = moveInput * _dashSpeed;
-
-            yield return new WaitForSeconds(Time.deltaTime);
-
-            if (_trailLifeTime != 0f) { if (Vector2.Distance(transform.position, lastTrailSpawnTransform) >= _distance / 4) { StartCoroutine("SpawnTrail"); lastTrailSpawnTransform = transform.position; } }
-            if (dashTime >= _maxDashTime) break;
-        }
-
-        _rb.linearVelocityY = 0f;
-        //_animator.SetBool("Dash", false);
         _curDashCooldown = 0f;
     }
 

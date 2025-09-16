@@ -214,6 +214,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 17071188769343318, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _jumpHeight
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3457467683538903820, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: m_GravityScale
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5706507615759887960, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _airMultiplier
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5706507615759887960, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: normalGravityScale
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5706507615759887960, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: fallingGravityScale
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 6291976062460644854, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
       propertyPath: m_Name
       value: Player(PlatformerMovement)
@@ -266,10 +286,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4113043443089570476, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6291976062460644854, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 1222006092}
   m_SourcePrefab: {fileID: 100100000, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
 --- !u!4 &98578135 stripped
 Transform:
@@ -1001,6 +1025,153 @@ Transform:
   - {fileID: 1730622019}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1222006082 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6291976062460644854, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+  m_PrefabInstance: {fileID: 98578134}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1222006084 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2507646553171853749, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+  m_PrefabInstance: {fileID: 98578134}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222006082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c315c03dfa07aab4381dffe135c31e4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1222006085 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 17071188769343318, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+  m_PrefabInstance: {fileID: 98578134}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222006082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 607f5a9bca0bbfb40aaab5f617c4ae8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1222006086 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3160105247397716535, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+  m_PrefabInstance: {fileID: 98578134}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222006082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64cd1fce82f1f194587cbe86ef0c0354, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1222006087 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5706507615759887960, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+  m_PrefabInstance: {fileID: 98578134}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222006082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f97fd5139cc59264d8109fe4675e3e90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1222006092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222006082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: bf4d230896f0b434fbf1d20264fdbb9e, type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1222006087}
+        m_TargetAssemblyTypeName: Movement, Assembly-CSharp
+        m_MethodName: OnMove
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 17a0be57-5ce7-483c-8e09-4e2889202d8f
+    m_ActionName: 'Movement/Walking[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1222006085}
+        m_TargetAssemblyTypeName: Jump, Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: e15aa0a2-d732-4967-8482-b93c25d23420
+    m_ActionName: 'Movement/Jump[/Keyboard/space]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1222006084}
+        m_TargetAssemblyTypeName: Dash, Assembly-CSharp
+        m_MethodName: OnDash
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 29236cd2-12c9-4833-a892-0175486eadde
+    m_ActionName: 'Movement/Dash[/Keyboard/shift]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1222006086}
+        m_TargetAssemblyTypeName: Run, Assembly-CSharp
+        m_MethodName: OnRun
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: fc428397-12ce-4182-af94-9181810dafe2
+    m_ActionName: 'Movement/Run[/Keyboard/ctrl]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: fc6321bc-cec9-4917-be5f-d1a7c55ce59b
+    m_ActionName: 'Movement/Crouch[/Keyboard/c]'
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Movement
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &1420436446
 GameObject:
   m_ObjectHideFlags: 0

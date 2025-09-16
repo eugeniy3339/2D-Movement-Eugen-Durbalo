@@ -4,6 +4,8 @@ using System;
 using Unity.VisualScripting;
 using UnityEngine.Windows;
 using static UnityEditor.Experimental.GraphView.GraphView;
+using UnityEngine.InputSystem;
+using UnityEngine.Experimental.GlobalIllumination;
 
 /*
 
@@ -37,13 +39,11 @@ Ak nemáte špecifické požiadavky, odporúčam nemeníť hodnoty premenných _
 
 
 [RequireComponent(typeof(Player))]
-[RequireComponent(typeof(PlayerInputsManager))]
 [RequireComponent(typeof(Rigidbody))]
 public class Movement : MonoBehaviour
 {
     private Player _player;
-    private Rigidbody2D _rb;
-    private PlayerInputsManager _inputs;
+    private Rigidbody2D _rigidbody;
     private Animator _animator;
 
     private Transform _gfx;
@@ -55,36 +55,41 @@ public class Movement : MonoBehaviour
     public float walkSpeed = 2f;
     [SerializeField] private float _airMultiplier = 0.8f;
     [SerializeField] private float _groundDrag = 5f;
+    [HideInInspector] public Vector2 moveInputValue;
+    [HideInInspector] public Vector2 lastMoveInputValue;
+    [HideInInspector] public float lastMoveInputX;
+    [HideInInspector] public float lastMoveInputY;
     [Header("Movement/Slopes")]
     [SerializeField] private float _maxSlopeAngle = 40f;
     private RaycastHit2D _slopeHit;
+
     [HideInInspector] public float speed;
     [HideInInspector] public bool canWalk = true;
     [HideInInspector] public bool slopesSpeedControl = true;
     [HideInInspector] public bool run;
     [HideInInspector] public bool isGrounded;
+    [HideInInspector] public bool beforeIsGrounded;
 
-    public float normalGravityScale = Mathf.Infinity;
-    public float fallingGravityScale;
+    public float normalGravityScale = 1f;
+    public float fallingGravityScale = 2f;
 
     private void Start()
     {
         //if (GetComponent<TopDownMovement>()) {print("There is another movement script!!!"); this.enabled = false; }
         _player = Player.Instance;
-        _rb = GetComponentInChildren<Rigidbody2D>();
-        _inputs = GetComponentInChildren<PlayerInputsManager>();
+        _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
 
-        _gfx = GetComponentInChildren<Player>().gfx;
+        _gfx = _player.gfx;
 
         speed = walkSpeed;
-        if (normalGravityScale == Mathf.Infinity) normalGravityScale = _rb.gravityScale;
+        if (normalGravityScale == Mathf.Infinity) normalGravityScale = _rigidbody.gravityScale;
     }
 
     private void Update()
     {
         SpeedControl();
-        Gravitation();
+        IsGrounded();
 
         useGravity(!OnSlope());
     }
@@ -92,23 +97,24 @@ public class Movement : MonoBehaviour
     private void FixedUpdate()
     {
         Move();
+        if(!isGrounded) SetGravityScale();
     }
 
     private void Move()
     {
         if (!canWalk) return;
 
-        float direction = _inputs.moveInputValue.x;
+        float direction = moveInputValue.x;
 
         if (!run) _animator.SetFloat("x", Mathf.Abs(direction) * 0.5f);
         else _animator.SetFloat("x", Mathf.Abs(direction));
 
-        if(_inputs.lastMoveInputX > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
-        else if(_inputs.lastMoveInputX < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
+        if(lastMoveInputX > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
+        else if(lastMoveInputX < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
 
         if (Mathf.Abs(direction) < 0.1f) return;
 
-        Vector2 moveDir = new Vector2(1f, 0f) * direction;
+        Vector2 moveDir = new Vector2(direction, 0f).normalized;
 
         if (OnSlope())
         {
@@ -117,11 +123,22 @@ public class Movement : MonoBehaviour
         }
 
         Debug.DrawRay(transform.position, moveDir.normalized * 10f, Color.green);
-        if (isGrounded) _rb.AddForce(moveDir.normalized * speed * 100f, ForceMode2D.Force);
-        else _rb.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
+        if (isGrounded) _rigidbody.AddForce(moveDir.normalized * speed * 100f, ForceMode2D.Force);
+        else _rigidbody.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
     }
 
-    private void Gravitation()
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        moveInputValue = context.ReadValue<Vector2>();
+        if(moveInputValue.magnitude > 0.1f)
+        {
+            lastMoveInputValue = moveInputValue;
+            if (Mathf.Abs(moveInputValue.x) > 0.1f) lastMoveInputX = moveInputValue.x;
+            if (Mathf.Abs(moveInputValue.y) > 0.1f) lastMoveInputY = moveInputValue.y;
+        }
+    }
+
+    private void IsGrounded()
     {
         isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.1f, _ground);
 
@@ -129,12 +146,19 @@ public class Movement : MonoBehaviour
 
         if (!canWalk) return;
 
-        if (isGrounded) { _rb.linearDamping = _groundDrag; _rb.gravityScale = normalGravityScale; }
-        else
+        if(beforeIsGrounded != isGrounded)
         {
-            _rb.linearDamping = 0f;
-            if (_rb.linearVelocity.y < 0f) _rb.gravityScale = fallingGravityScale;
-            else _rb.gravityScale = normalGravityScale;
+            if (isGrounded)
+            {
+                _rigidbody.linearDamping = _groundDrag;
+                _player.movementScript.SetGravityScale(false);
+            }
+            else
+            {
+                _rigidbody.linearDamping = 0f;
+            }
+
+            beforeIsGrounded = isGrounded;
         }
     }
 
@@ -166,30 +190,47 @@ public class Movement : MonoBehaviour
         {
             if(!slopesSpeedControl) return;
 
-            if (_rb.linearVelocity.magnitude > speed)
+            if (_rigidbody.linearVelocity.magnitude > speed)
             {
-                _rb.linearVelocity = _rb.linearVelocity.normalized * speed;
+                _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * speed;
             }
         }
         else
         {
-            float flatVel = _rb.linearVelocity.x;
+            float flatVel = _rigidbody.linearVelocity.x;
 
             if (Mathf.Abs(flatVel) > speed)
             {
-                float limitedVelocity = _rb.linearVelocity.normalized.x * speed;
-                _rb.linearVelocity = new Vector2(limitedVelocity, _rb.linearVelocity.y);
+                float limitedVelocity = _rigidbody.linearVelocity.normalized.x * speed;
+                _rigidbody.linearVelocity = new Vector2(limitedVelocity, _rigidbody.linearVelocity.y);
             }
         }
     }
 
     private void useGravity(bool use)
     {
-        float gravityScale = _rb.gravityScale;
+        float gravityScale = _rigidbody.gravityScale;
 
-        if (use) _rb.gravityScale = 1f;
-        else _rb.gravityScale = 0f;
+        if (use) _rigidbody.gravityScale = 1f;
+        else _rigidbody.gravityScale = 0f;
 
         //if(_rb.gravityScale != gravityScale) _rb.linearVelocity = Vector2.zero;
+    }
+
+    private void SetGravityScale()
+    {
+        if (_rigidbody.linearVelocity.y < 0f)
+        {
+            SetGravityScale(true);
+        }
+        else
+        {
+            SetGravityScale(false);
+        }
+    }
+
+    public void SetGravityScale(bool fallingGravityScale)
+    {
+        _rigidbody.gravityScale = fallingGravityScale ? this.fallingGravityScale : normalGravityScale;
     }
 }
