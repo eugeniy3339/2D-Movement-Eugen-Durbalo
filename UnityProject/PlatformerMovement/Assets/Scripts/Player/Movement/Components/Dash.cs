@@ -11,7 +11,7 @@ This script is a module for player movement and wouldnt work without a player, p
  */
 
 [RequireComponent(typeof(Movement))]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class Dash : PlayerComponent
 {
     private Player _player;
@@ -55,16 +55,16 @@ public class Dash : PlayerComponent
         }
     }
 
-    private void DashAction()
+    public void DashAction()
     {
         if (!_player.movementScript.canWalk) return;
         if (_curDashCooldown < _dashCooldown) return;
 
         _player.movementScript.canWalk = false;
-        StartCoroutine(PlatformerDashCoro());
+        StartCoroutine(DashCoro());
     }
 
-    private IEnumerator PlatformerDashCoro()
+    private IEnumerator DashCoro()
     {
         Vector2 moveInput = _player.movementScript.lastMoveInputValue.normalized;
         Vector2 startPosition = transform.position;

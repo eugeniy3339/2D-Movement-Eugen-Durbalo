@@ -39,7 +39,7 @@ Ak nemáte špecifické požiadavky, odporúčam nemeníť hodnoty premenných _
 
 
 [RequireComponent(typeof(Player))]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class Movement : MonoBehaviour
 {
     private Player _player;
@@ -55,6 +55,7 @@ public class Movement : MonoBehaviour
     public float walkSpeed = 2f;
     [SerializeField] private float _airMultiplier = 0.8f;
     [SerializeField] private float _groundDrag = 5f;
+    public float groundDrag { get { return _groundDrag; } }
     [HideInInspector] public Vector2 moveInputValue;
     [HideInInspector] public Vector2 lastMoveInputValue;
     [HideInInspector] public float lastMoveInputX;
@@ -65,6 +66,8 @@ public class Movement : MonoBehaviour
 
     [HideInInspector] public float speed;
     [HideInInspector] public bool canWalk = true;
+    [HideInInspector] public bool canChangeRigidbodyDamping = true;
+    [HideInInspector] public bool canChangeUseGravity = true;
     [HideInInspector] public bool slopesSpeedControl = true;
     [HideInInspector] public bool run;
     [HideInInspector] public bool isGrounded;
@@ -140,7 +143,7 @@ public class Movement : MonoBehaviour
 
     private void IsGrounded()
     {
-        isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.1f, _ground);
+        isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.2f, _ground);
 
         _animator.SetBool("InAir", !isGrounded);
 
@@ -150,21 +153,21 @@ public class Movement : MonoBehaviour
         {
             if (isGrounded)
             {
-                _rigidbody.linearDamping = _groundDrag;
+                if (canChangeRigidbodyDamping) _rigidbody.linearDamping = _groundDrag;
                 _player.movementScript.SetGravityScale(false);
             }
             else
             {
-                _rigidbody.linearDamping = 0f;
+                if (canChangeRigidbodyDamping) _rigidbody.linearDamping = 0f;
             }
 
             beforeIsGrounded = isGrounded;
         }
     }
 
-    private bool OnSlope()
+    public bool OnSlope()
     {
-        _slopeHit = Physics2D.Raycast(transform.position, Vector2.down, _halfPlayersHeight + 0.1f, _ground);
+        _slopeHit = Physics2D.Raycast(transform.position, Vector2.down, _halfPlayersHeight + 0.2f, _ground);
 
         if (_slopeHit == true)
         {
@@ -175,7 +178,7 @@ public class Movement : MonoBehaviour
         return false;
     }
 
-    private Vector2 GetSlopeMoveDirection(Vector2 normal)
+    public Vector2 GetSlopeMoveDirection(Vector2 normal)
     {
         Vector3 dir = Vector3.ProjectOnPlane(normal, _slopeHit.normal).normalized;
 
@@ -209,6 +212,7 @@ public class Movement : MonoBehaviour
 
     private void useGravity(bool use)
     {
+        if (!canChangeUseGravity) return;
         float gravityScale = _rigidbody.gravityScale;
 
         if (use) _rigidbody.gravityScale = 1f;

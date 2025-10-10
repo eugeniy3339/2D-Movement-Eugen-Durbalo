@@ -8,7 +8,7 @@ This script is a module for player movement and wouldnt work without a player, p
  */
 
 [RequireComponent(typeof(Movement))]
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody2D))]
 public class Jump : PlayerComponent
 {
     private Player _player;

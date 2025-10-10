@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
 {
     public static Player Instance;
     public Movement movementScript;
-    public List<PlayerComponent> components;
+    public List<PlayerComponent> components = new List<PlayerComponent>();
 
     [Tooltip("Your character Graphics (need to rotate your character while dashing)")] public Transform gfx;
 
@@ -22,10 +22,10 @@ public class Player : MonoBehaviour
         Instance = this;
         movementScript = GetComponent<Movement>();
 
-        components.Clear();
-        foreach (var component in GetComponents<PlayerComponent>())
+        foreach (var component in GetComponentsInChildren<PlayerComponent>())
         {
-            components.Add(component);
+            if(!components.Contains(component))
+                components.Add(component);
         }
     }
 }

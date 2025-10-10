@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 
 /*
  
@@ -20,7 +21,8 @@ public class Run : PlayerComponent
 
     [SerializeField] private RunMode _runMode;
     [SerializeField] private float _runSpeed = 3.5f;
-    private bool _run = false;
+    public bool run = false;
+    public bool lastRunInput = false;
 
     private void Start()
     {
@@ -33,18 +35,32 @@ public class Run : PlayerComponent
         {
             case RunMode.Hold:
                 RunAction(!context.canceled);
+                lastRunInput = !context.canceled;
                 break;
             case RunMode.Toggle:
-                if (context.started) { RunAction(!_run); }
+                if (context.started) 
+                { 
+                    lastRunInput = !lastRunInput; 
+                    RunAction(!run); 
+                }
                 break;
         }
     }
 
-    private void RunAction(bool run)
+    public void RunAction(bool run)
     {
-        _run = run;
+        this.run = run;
+        _player.movementScript.run = this.run;
+        foreach (var component in _player.components)
+        {
+            if (component.GetType() == typeof(Crouch))
+            {
+                Crouch crouchComponent = component as Crouch;
+                if (run)
+                    crouchComponent.CrouchAction(false);
+            }
+        }
 
-        _player.movementScript.run = _run;
-        _player.movementScript.speed = _run ? _runSpeed : _player.movementScript.walkSpeed;
+        _player.movementScript.speed = this.run ? _runSpeed : _player.movementScript.walkSpeed;
     }
 }
