@@ -55,9 +55,12 @@ public class Jump : PlayerComponent
         {
             _jumping = true;
             _player.movementScript.slopesSpeedControl = false;
+            _player.movementScript.isGrounded = false;
+            _animator.SetBool("InAir", true);
             _canJump = false;
             _canceledJump = false;
             _curJumpCooldown = 0f;
+            _player.movementScript.checkIfIsGrounded = false;
 
             _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
             _rigidbody.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
@@ -86,6 +89,7 @@ public class Jump : PlayerComponent
         {
             if (_jumping)
             {
+                _player.movementScript.checkIfIsGrounded = true;
                 if (_player.movementScript.isGrounded)
                 {
                     _jumping = false;

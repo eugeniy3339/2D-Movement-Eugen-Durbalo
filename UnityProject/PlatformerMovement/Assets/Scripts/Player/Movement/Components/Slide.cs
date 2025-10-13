@@ -85,7 +85,7 @@ public class Slide : Crouch
         _sliding = slide;
         _player.movementScript.canWalk = !slide;
         _player.movementScript.canChangeRigidbodyDamping = !slide;
-        _player.movementScript.canChangeUseGravity = !slide;
+        _player.movementScript.canChangeGravityScale = !slide;
         _animator.SetBool("Crouching", slide);
         if (slide)
         {

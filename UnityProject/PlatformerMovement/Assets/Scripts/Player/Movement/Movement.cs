@@ -64,11 +64,13 @@ public class Movement : MonoBehaviour
     [SerializeField] private float _maxSlopeAngle = 40f;
     private RaycastHit2D _slopeHit;
 
+    private int _playerStartLayer;
     [HideInInspector] public float speed;
     [HideInInspector] public bool canWalk = true;
     [HideInInspector] public bool canChangeRigidbodyDamping = true;
-    [HideInInspector] public bool canChangeUseGravity = true;
+    [HideInInspector] public bool canChangeGravityScale = true;
     [HideInInspector] public bool slopesSpeedControl = true;
+    [HideInInspector] public bool checkIfIsGrounded = true;
     [HideInInspector] public bool run;
     [HideInInspector] public bool isGrounded;
     [HideInInspector] public bool beforeIsGrounded;
@@ -76,8 +78,18 @@ public class Movement : MonoBehaviour
     public float normalGravityScale = 1f;
     public float fallingGravityScale = 2f;
 
+    [Header("Stairs")]
+    [SerializeField] private float _maxDistanceFromStairsCenter = 0.2f;
+    [SerializeField] private int _onStairsLayer;
+    [SerializeField] private float _onStairsDrag = 7f;
+    [SerializeField] private float _stairsSpeed;
+    private bool _onStairs;
+    [HideInInspector] public List<Stairs> curStairsList = new List<Stairs>();
+    private Stairs _curStairs;
+
     private void Start()
     {
+        _playerStartLayer = gameObject.layer;
         //if (GetComponent<TopDownMovement>()) {print("There is another movement script!!!"); this.enabled = false; }
         _player = Player.Instance;
         _rigidbody = GetComponentInChildren<Rigidbody2D>();
@@ -107,6 +119,12 @@ public class Movement : MonoBehaviour
     {
         if (!canWalk) return;
 
+        if(_onStairs)
+        {
+            StairsMovement();
+            return;
+        }
+
         float direction = moveInputValue.x;
 
         if (!run) _animator.SetFloat("x", Mathf.Abs(direction) * 0.5f);
@@ -130,19 +148,74 @@ public class Movement : MonoBehaviour
         else _rigidbody.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
     }
 
+    private void StairsMovement()
+    {
+        float direction = moveInputValue.y;
+        if (Mathf.Abs(direction) > 0f) _animator.speed = 1f;
+        else _animator.speed = 0f;
+
+        _rigidbody.AddForce(new Vector2(0f, direction).normalized * _stairsSpeed * 100f, ForceMode2D.Force);
+    }
+
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInputValue = context.ReadValue<Vector2>();
         if(moveInputValue.magnitude > 0.1f)
         {
             lastMoveInputValue = moveInputValue;
-            if (Mathf.Abs(moveInputValue.x) > 0.1f) lastMoveInputX = moveInputValue.x;
-            if (Mathf.Abs(moveInputValue.y) > 0.1f) lastMoveInputY = moveInputValue.y;
+            if (Mathf.Abs(moveInputValue.x) > 0.1f) {
+                lastMoveInputX = moveInputValue.x;
+
+                if (Mathf.Abs(moveInputValue.y) < 0.1f && _onStairs && isGrounded && canWalk)
+                {
+                    _curStairs = null;
+
+                    gameObject.layer = _playerStartLayer;
+                    _onStairs = false;
+                    useGravity(true);
+                    _rigidbody.linearDamping = 0f;
+                    canChangeRigidbodyDamping = true;
+                    canChangeGravityScale = true;
+                    _animator.SetBool("Climbing", false);
+                    _animator.speed = 1f;
+
+                    foreach (var playerComponent in _player.components)
+                    {
+                        playerComponent.enabled = true;
+                    }
+                }
+            }
+            if (Mathf.Abs(moveInputValue.y) > 0.1f) {
+                lastMoveInputY = moveInputValue.y;
+
+                if(Mathf.Abs(moveInputValue.x) < 0.1f && !_onStairs && canWalk)
+                {
+                    _curStairs = GetCurrentStairs();
+
+                    if(_curStairs)
+                    {
+                        gameObject.layer = _onStairsLayer;
+                        _onStairs = true;
+                        useGravity(false);
+                        _rigidbody.linearDamping = _onStairsDrag;
+                        canChangeRigidbodyDamping = false;
+                        canChangeGravityScale = false;
+                        _animator.SetBool("Climbing", true);
+
+                        foreach(var playerComponent in _player.components)
+                        {
+                            playerComponent.enabled = false;
+                        }
+                    }
+                }
+            }
         }
     }
 
     private void IsGrounded()
     {
+        if (!checkIfIsGrounded) return;
+        Debug.DrawLine(transform.position, new Vector2(transform.position.x, transform.position.y - _halfPlayersHeight - 0.2f));
         isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.2f, _ground);
 
         _animator.SetBool("InAir", !isGrounded);
@@ -189,6 +262,18 @@ public class Movement : MonoBehaviour
     {
         if (!canWalk) return;
 
+        if(_onStairs)
+        {
+            float flatVel = _rigidbody.linearVelocity.y;
+
+            if (Mathf.Abs(flatVel) > speed)
+            {
+                float limitedVelocity = _rigidbody.linearVelocity.normalized.y * speed;
+                _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, limitedVelocity); 
+            }
+            return;
+        }
+
         if (OnSlope())
         {
             if(!slopesSpeedControl) return;
@@ -212,7 +297,7 @@ public class Movement : MonoBehaviour
 
     private void useGravity(bool use)
     {
-        if (!canChangeUseGravity) return;
+        if (!canChangeGravityScale) return;
         float gravityScale = _rigidbody.gravityScale;
 
         if (use) _rigidbody.gravityScale = 1f;
@@ -235,6 +320,24 @@ public class Movement : MonoBehaviour
 
     public void SetGravityScale(bool fallingGravityScale)
     {
+        if (!canChangeGravityScale) return;
         _rigidbody.gravityScale = fallingGravityScale ? this.fallingGravityScale : normalGravityScale;
+    }
+
+    private Stairs GetCurrentStairs()
+    {
+        Stairs closestStairs = null;
+        float closestStairsDistance = _maxDistanceFromStairsCenter;
+        foreach (var stairs in curStairsList)
+        {
+            float distance = Vector2.Distance(new Vector2(transform.position.x, 0f), new Vector2(stairs.transform.position.x, 0f));
+            if(distance < closestStairsDistance)
+            {
+                closestStairsDistance = distance;
+                closestStairs = stairs;
+            }
+        }
+
+        return closestStairs;
     }
 }
