@@ -37,6 +37,11 @@ Ak nemáte špecifické požiadavky, odporúčam nemeníť hodnoty premenných _
  
  */
 
+public enum GetOfTheLadderMethode
+{
+    Input,
+    Direction
+}
 
 [RequireComponent(typeof(Player))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -86,6 +91,7 @@ public class Movement : MonoBehaviour
     private bool _onStairs;
     [HideInInspector] public List<Stairs> curStairsList = new List<Stairs>();
     private Stairs _curStairs;
+    [SerializeField] private GetOfTheLadderMethode _getOfTheLadderMethode;
 
     private void Start()
     {
@@ -99,6 +105,13 @@ public class Movement : MonoBehaviour
 
         speed = walkSpeed;
         if (normalGravityScale == Mathf.Infinity) normalGravityScale = _rigidbody.gravityScale;
+
+        switch(_getOfTheLadderMethode)
+        {
+            case GetOfTheLadderMethode.Direction:
+                SetStairsExits();
+                break;
+        }
     }
 
     private void Update()
@@ -130,8 +143,11 @@ public class Movement : MonoBehaviour
         if (!run) _animator.SetFloat("x", Mathf.Abs(direction) * 0.5f);
         else _animator.SetFloat("x", Mathf.Abs(direction));
 
-        if(lastMoveInputX > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
-        else if(lastMoveInputX < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
+        if(direction != 0f)
+        {
+            if (direction > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
+            else if (direction < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
+        }
 
         if (Mathf.Abs(direction) < 0.1f) return;
 
@@ -150,11 +166,20 @@ public class Movement : MonoBehaviour
 
     private void StairsMovement()
     {
-        float direction = moveInputValue.y;
-        if (Mathf.Abs(direction) > 0f) _animator.speed = 1f;
+        Vector2 direction = new Vector2(0f, moveInputValue.y).normalized;
+
+        if (Mathf.Abs(direction.y) > 0f) _animator.speed = 1f;
         else _animator.speed = 0f;
 
-        _rigidbody.AddForce(new Vector2(0f, direction).normalized * _stairsSpeed * 100f, ForceMode2D.Force);
+        _rigidbody.AddForce(direction * _stairsSpeed * 100f, ForceMode2D.Force);
+
+        switch (_getOfTheLadderMethode)
+        {
+            case GetOfTheLadderMethode.Direction:
+                if (IsGoindToLeaveTheStairs(direction.y))
+                    { GetOfTheLadder(); }
+                break;
+        }
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -166,48 +191,19 @@ public class Movement : MonoBehaviour
             if (Mathf.Abs(moveInputValue.x) > 0.1f) {
                 lastMoveInputX = moveInputValue.x;
 
-                if (Mathf.Abs(moveInputValue.y) < 0.1f && _onStairs && isGrounded && canWalk)
+
+                switch (_getOfTheLadderMethode)
                 {
-                    _curStairs = null;
-
-                    gameObject.layer = _playerStartLayer;
-                    _onStairs = false;
-                    useGravity(true);
-                    _rigidbody.linearDamping = 0f;
-                    canChangeRigidbodyDamping = true;
-                    canChangeGravityScale = true;
-                    _animator.SetBool("Climbing", false);
-                    _animator.speed = 1f;
-
-                    foreach (var playerComponent in _player.components)
-                    {
-                        playerComponent.enabled = true;
-                    }
+                    case GetOfTheLadderMethode.Input:
+                        if (Mathf.Abs(moveInputValue.y) < 0.1f && isGrounded)
+                            { GetOfTheLadder(); }
+                        break;
                 }
             }
             if (Mathf.Abs(moveInputValue.y) > 0.1f) {
                 lastMoveInputY = moveInputValue.y;
 
-                if(Mathf.Abs(moveInputValue.x) < 0.1f && !_onStairs && canWalk)
-                {
-                    _curStairs = GetCurrentStairs();
-
-                    if(_curStairs)
-                    {
-                        gameObject.layer = _onStairsLayer;
-                        _onStairs = true;
-                        useGravity(false);
-                        _rigidbody.linearDamping = _onStairsDrag;
-                        canChangeRigidbodyDamping = false;
-                        canChangeGravityScale = false;
-                        _animator.SetBool("Climbing", true);
-
-                        foreach(var playerComponent in _player.components)
-                        {
-                            playerComponent.enabled = false;
-                        }
-                    }
-                }
+                GetOnLadder();
             }
         }
     }
@@ -222,7 +218,7 @@ public class Movement : MonoBehaviour
 
         if (!canWalk) return;
 
-        if(beforeIsGrounded != isGrounded)
+        if (beforeIsGrounded != isGrounded)
         {
             if (isGrounded)
             {
@@ -339,5 +335,89 @@ public class Movement : MonoBehaviour
         }
 
         return closestStairs;
+    }
+
+    private void GetOnLadder()
+    {
+        if (Mathf.Abs(moveInputValue.x) < 0.1f && !_onStairs && canWalk)
+        {
+            _curStairs = GetCurrentStairs();
+
+            if (_curStairs)
+            {
+                gameObject.layer = _onStairsLayer;
+                _onStairs = true;
+                useGravity(false);
+                _rigidbody.linearDamping = _onStairsDrag;
+                canChangeRigidbodyDamping = false;
+                canChangeGravityScale = false;
+                _animator.SetBool("Climbing", true);
+
+                foreach (var playerComponent in _player.components)
+                {
+                    playerComponent.enabled = false;
+                }
+            }
+        }
+    }
+
+    private void GetOfTheLadder()
+    {
+        if (_onStairs && canWalk)
+        {
+            _curStairs = null;
+
+            gameObject.layer = _playerStartLayer;
+            _onStairs = false;
+            useGravity(true);
+            _rigidbody.linearDamping = isGrounded ? _groundDrag : 0f;
+            canChangeRigidbodyDamping = true;
+            canChangeGravityScale = true;
+            _animator.SetBool("Climbing", false);
+            _animator.speed = 1f;
+
+            foreach (var playerComponent in _player.components)
+            {
+                playerComponent.enabled = true;
+            }
+        }
+    }
+
+    private bool IsGoindToLeaveTheStairs(float moveDirection)
+    {
+        if (!_curStairs) return false;
+
+        foreach (var stairsExit in _curStairs.stairsExits)
+        {
+            float exitDirection = (new Vector2(0f, stairsExit.position.y) - new Vector2(0f, _curStairs.transform.position.y)).normalized.y;
+
+            if(exitDirection == moveDirection && Mathf.Abs(transform.position.y - stairsExit.position.y) <= 0.1f)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void SetStairsExits()
+    {
+        foreach (var stairs in FindObjectsOfType<Stairs>())
+        {
+            if (stairs.stairsExits.Count == 0)
+            {
+                GameObject stairsExitTransform = new GameObject("StairsExit");
+                stairsExitTransform.transform.position = new Vector2(stairs.transform.position.x, stairs.transform.position.y + stairs.transform.localScale.y / 2f - _halfPlayersHeight - 0.1f);
+                stairsExitTransform.transform.SetParent(stairs.transform, true);
+
+                stairs.stairsExits.Add(stairsExitTransform.transform);
+
+                GameObject stairsExitTransform2 = new GameObject("StairsExit");
+                stairsExitTransform2.transform.position = new Vector2(stairs.transform.position.x, stairs.transform.position.y - stairs.transform.localScale.y / 2f + _halfPlayersHeight + 0.1f);
+                stairsExitTransform2.transform.SetParent(stairs.transform, true);
+
+                stairs.stairsExits.Add(stairsExitTransform2.transform);
+            }
+        }
     }
 }

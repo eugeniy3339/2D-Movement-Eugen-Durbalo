@@ -1,7 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Stairs : MonoBehaviour
 {
+    public List<Transform> stairsExits;
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         print(collision);

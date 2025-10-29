@@ -86,7 +86,7 @@ public class ParalaxeEffect : MonoBehaviour
     {
         foreach (var paralaxeLayer in _paralaxeLayers)
         {
-            paralaxeLayer.layerTransform.position = new Vector2(moveWithTransform.position.x * paralaxeLayer.horizontalSpeed, moveWithTransform.position.x * paralaxeLayer.verticalSpeed);
+            paralaxeLayer.layerTransform.position = new Vector2(moveWithTransform.position.x * paralaxeLayer.horizontalSpeed, moveWithTransform.position.y * paralaxeLayer.verticalSpeed);
         }
     }
 }

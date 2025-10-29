@@ -11,23 +11,26 @@ This script is a module for player movement and wouldnt work without a player, p
 [RequireComponent(typeof(Rigidbody2D))]
 public class Jump : PlayerComponent
 {
-    private Player _player;
-    private Rigidbody2D _rigidbody;
-    private Animator _animator;
+    protected Player _player;
+    protected Rigidbody2D _rigidbody;
+    protected Animator _animator;
 
-    [SerializeField] private float _jumpHeight;
-    [SerializeField] private float _minJumpCooldowm = 0.1f;
-    private float _curJumpCooldown;
+    [SerializeField] protected float _jumpHeight;
+    [SerializeField] protected float _minJumpCooldowm = 0.1f;
+    protected float _jumpCooldown;
+    protected float _curJumpCooldown;
 
-    private bool _canJump = true;
-    private bool _jumping;
-    private bool _canceledJump;
+    protected bool _canJump = true;
+    protected bool _jumping;
+    protected bool _canceledJump;
 
-    private void Start()
+    protected virtual void Start()
     {
         _player = Player.Instance;
         _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
+
+        _jumpCooldown = _minJumpCooldowm;
     }
 
     private void Update()
@@ -35,7 +38,7 @@ public class Jump : PlayerComponent
         ResetJump();
     }
 
-    public void OnJump(InputAction.CallbackContext context)
+    public virtual void OnJump(InputAction.CallbackContext context)
     {
         if(context.started)
         {
@@ -47,7 +50,7 @@ public class Jump : PlayerComponent
         }
     }
 
-    private void JumpAction()
+    protected virtual void JumpAction()
     {
         if(!_canJump) return;
 
@@ -61,6 +64,7 @@ public class Jump : PlayerComponent
             _canceledJump = false;
             _curJumpCooldown = 0f;
             _player.movementScript.checkIfIsGrounded = false;
+            _jumpCooldown = _minJumpCooldowm;
 
             _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
             _rigidbody.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
@@ -69,7 +73,7 @@ public class Jump : PlayerComponent
         }
     }
 
-    private void CancelJumpAction()
+    protected virtual void CancelJumpAction()
     {
         if (!_canceledJump && _jumping && _rigidbody.linearVelocity.y > 0f)
         {
@@ -79,9 +83,9 @@ public class Jump : PlayerComponent
         }
     }
 
-    private void ResetJump()
+    protected virtual void ResetJump()
     {
-        if(_curJumpCooldown < _minJumpCooldowm)
+        if(_curJumpCooldown < _jumpCooldown)
         {
             _curJumpCooldown += Time.deltaTime;
         }
@@ -89,6 +93,7 @@ public class Jump : PlayerComponent
         {
             if (_jumping)
             {
+                _player.movementScript.canWalk = true;
                 _player.movementScript.checkIfIsGrounded = true;
                 if (_player.movementScript.isGrounded)
                 {
