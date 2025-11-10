@@ -433,16 +433,17 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8518552912605648064}
+  - component: {fileID: 3712209772044363586}
   - component: {fileID: 9153513559890229246}
   - component: {fileID: 2220729463769765408}
   - component: {fileID: 3457467683538903820}
   - component: {fileID: 7801507499520711732}
   - component: {fileID: 5706507615759887960}
   - component: {fileID: 3160105247397716535}
-  - component: {fileID: 17071188769343318}
   - component: {fileID: 2507646553171853749}
   - component: {fileID: 6888518493905859159}
   - component: {fileID: 900822147187206458}
+  - component: {fileID: 2914302259404973809}
   m_Layer: 0
   m_Name: Player(PlatformerMovement)
   m_TagString: Untagged
@@ -467,6 +468,18 @@ Transform:
   - {fileID: 2497962542482253775}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3712209772044363586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291976062460644854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7acc292f1f27e6469e2d34fb0a1e766, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &9153513559890229246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -482,6 +495,7 @@ MonoBehaviour:
   movementScript: {fileID: 0}
   components: []
   gfx: {fileID: 4636071160038899489}
+  canFlipGfx: 1
 --- !u!70 &2220729463769765408
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -492,7 +506,7 @@ CapsuleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: b763e9588021bbf458c3e9292394185d, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -573,8 +587,8 @@ MonoBehaviour:
   m_ActionEvents:
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 5706507615759887960}
-        m_TargetAssemblyTypeName: Movement, Assembly-CSharp
+      - m_Target: {fileID: 3712209772044363586}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
         m_MethodName: OnMove
         m_Mode: 0
         m_Arguments:
@@ -589,8 +603,8 @@ MonoBehaviour:
     m_ActionName: 'Movement/Walking[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Keyboard/upArrow,/Keyboard/downArrow,/Keyboard/leftArrow,/Keyboard/rightArrow]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 17071188769343318}
-        m_TargetAssemblyTypeName: Jump, Assembly-CSharp
+      - m_Target: {fileID: 3712209772044363586}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
         m_MethodName: OnJump
         m_Mode: 0
         m_Arguments:
@@ -605,8 +619,8 @@ MonoBehaviour:
     m_ActionName: 'Movement/Jump[/Keyboard/space]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2507646553171853749}
-        m_TargetAssemblyTypeName: Dash, Assembly-CSharp
+      - m_Target: {fileID: 3712209772044363586}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
         m_MethodName: OnDash
         m_Mode: 0
         m_Arguments:
@@ -621,8 +635,8 @@ MonoBehaviour:
     m_ActionName: 'Movement/Dash[/Keyboard/shift]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 3160105247397716535}
-        m_TargetAssemblyTypeName: Run, Assembly-CSharp
+      - m_Target: {fileID: 3712209772044363586}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
         m_MethodName: OnRun
         m_Mode: 0
         m_Arguments:
@@ -637,8 +651,8 @@ MonoBehaviour:
     m_ActionName: 'Movement/Run[/Keyboard/ctrl]'
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 6888518493905859159}
-        m_TargetAssemblyTypeName: Crouch, Assembly-CSharp
+      - m_Target: {fileID: 3712209772044363586}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
         m_MethodName: OnCrouch
         m_Mode: 0
         m_Arguments:
@@ -674,7 +688,7 @@ MonoBehaviour:
   _halfPlayersHeight: 1
   walkSpeed: 2
   _airMultiplier: 1
-  _groundDrag: 5
+  _groundDrag: 10
   moveInputValue: {x: 0, y: 0}
   lastMoveInputValue: {x: 0, y: 0}
   lastMoveInputX: 0
@@ -683,13 +697,16 @@ MonoBehaviour:
   speed: 0
   canWalk: 1
   canChangeRigidbodyDamping: 1
-  canChangeUseGravity: 1
+  canChangeGravityScale: 1
   slopesSpeedControl: 1
+  checkIfIsGrounded: 1
   run: 0
   isGrounded: 0
   beforeIsGrounded: 0
-  normalGravityScale: 1
-  fallingGravityScale: 2
+  normalGravityScale: 4
+  _maxFallSpeed: 50
+  _onLaderDrag: 15
+  _onLaderSpeed: 3.5
 --- !u!114 &3160105247397716535
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -706,20 +723,6 @@ MonoBehaviour:
   _runSpeed: 3.5
   run: 0
   lastRunInput: 0
---- !u!114 &17071188769343318
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6291976062460644854}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 607f5a9bca0bbfb40aaab5f617c4ae8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _jumpHeight: 10
-  _minJumpCooldowm: 0.1
 --- !u!114 &2507646553171853749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -757,9 +760,9 @@ MonoBehaviour:
   _slideActivationMode: 0
   _minSpeedToActivateSlide: 3
   _slideStartImpulse: 5
-  _minusForceStrengthPerSecond: 1.5
   _minSlideSpeed: 0.5
   _slideCooldown: 0.2
+  _slideGroundDrag: 0.5
 --- !u!95 &900822147187206458
 Animator:
   serializedVersion: 7
@@ -782,6 +785,26 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2914302259404973809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291976062460644854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cddac2510aeed6a42be8e4aad8cac83e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _jumpHeight: 20
+  _minJumpTime: 0.1
+  _afterJumpGravityScale: 5
+  _jumpCheckType: 0
+  _wallJumpAngle: 70
+  _wallJumpForce: 30
+  _onWallDrag: 7
+  _wallJumpCooldown: 0.2
 --- !u!1 &6473468384035601914
 GameObject:
   m_ObjectHideFlags: 0

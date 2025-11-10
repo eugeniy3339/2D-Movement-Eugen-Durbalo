@@ -1,11 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
-using System;
-using Unity.VisualScripting;
-using UnityEngine.Windows;
-using static UnityEditor.Experimental.GraphView.GraphView;
+using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Experimental.GlobalIllumination;
 
 /*
 
@@ -43,6 +39,14 @@ public enum GetOfTheLadderMethode
     Direction
 }
 
+public enum PlayerState
+{
+    Movement,
+    Dashing,
+    Stunned,
+    Attacking
+}
+
 [RequireComponent(typeof(Player))]
 [RequireComponent(typeof(Rigidbody2D))]
 public class Movement : MonoBehaviour
@@ -50,6 +54,28 @@ public class Movement : MonoBehaviour
     private Player _player;
     private Rigidbody2D _rigidbody;
     private Animator _animator;
+
+    private PlayerState _playerState;
+    public PlayerState playerState 
+    {
+        get { 
+            return _playerState; 
+        }
+        set {
+            if (playerState != value) { 
+                _beforePlayerState = _playerState;
+                _playerState = value;
+                if(onPlayerStateChanged != null)
+                {
+                    onPlayerStateChanged(_beforePlayerState, value);
+                }
+            } 
+        }
+    }
+    private PlayerState _beforePlayerState;
+
+    public delegate void OnPlayerStateChanged(PlayerState beforeState, PlayerState newState);
+    public event OnPlayerStateChanged onPlayerStateChanged;
 
     private Transform _gfx;
 
@@ -79,39 +105,85 @@ public class Movement : MonoBehaviour
     [HideInInspector] public bool run;
     [HideInInspector] public bool isGrounded;
     [HideInInspector] public bool beforeIsGrounded;
-
+    [Header("Gravity")]
     public float normalGravityScale = 1f;
-    public float fallingGravityScale = 2f;
+    [SerializeField] private float _maxFallSpeed = 50f;
+    [Header("Lader")]
+    [SerializeField] private float _onLaderDrag = 15f;
+    [SerializeField] private float _onLaderSpeed = 3.5f;
+    private List<Lader> _curLaders = new List<Lader>();
+    public List<Lader> curLaders { get { return _curLaders; } }
+    private bool _onLader;
+    public bool onLader { get { return _onLader; } }
+    public event Action onGetOnLader;
 
-    [Header("Stairs")]
-    [SerializeField] private float _maxDistanceFromStairsCenter = 0.2f;
-    [SerializeField] private int _onStairsLayer;
-    [SerializeField] private float _onStairsDrag = 7f;
-    [SerializeField] private float _stairsSpeed;
-    private bool _onStairs;
-    [HideInInspector] public List<Stairs> curStairsList = new List<Stairs>();
-    private Stairs _curStairs;
-    [SerializeField] private GetOfTheLadderMethode _getOfTheLadderMethode;
-
-    private void Start()
+    private float _curGravityScale;
+    public float curGravityScale
     {
-        _playerStartLayer = gameObject.layer;
-        //if (GetComponent<TopDownMovement>()) {print("There is another movement script!!!"); this.enabled = false; }
-        _player = Player.Instance;
+        set {
+            if (canChangeGravityScale)
+            {
+                _curGravityScale = value;
+                gravityScale = value;
+            }
+        }
+        get {
+            return _curGravityScale;
+        }
+    }
+
+    private float _gravityScale;
+    public float gravityScale
+    {
+        get
+        {
+            return _gravityScale;
+        }
+        set
+        {
+            if (canChangeGravityScale)
+            {
+                _gravityScale = value;
+                _rigidbody.gravityScale = value;
+            }
+        }
+    }
+
+    private float _curDrag;
+    public float curDrag {
+        get { 
+            return _curDrag; 
+        }
+        set {
+            if(canChangeRigidbodyDamping)
+            {
+                _curDrag = value;
+                _rigidbody.linearDamping = value;
+            }
+        }
+    }
+
+    private void Awake()
+    {
         _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
 
+        _playerStartLayer = gameObject.layer;
+
+        playerState = PlayerState.Movement;
+        canChangeGravityScale = true;
+        speed = walkSpeed;
+
+        if (normalGravityScale == Mathf.Infinity) normalGravityScale = _rigidbody.gravityScale;
+        curGravityScale = normalGravityScale;
+    }
+
+    private void Start()
+    {
+        _player = Player.Instance;
         _gfx = _player.gfx;
 
-        speed = walkSpeed;
-        if (normalGravityScale == Mathf.Infinity) normalGravityScale = _rigidbody.gravityScale;
-
-        switch(_getOfTheLadderMethode)
-        {
-            case GetOfTheLadderMethode.Direction:
-                SetStairsExits();
-                break;
-        }
+        
     }
 
     private void Update()
@@ -125,16 +197,15 @@ public class Movement : MonoBehaviour
     private void FixedUpdate()
     {
         Move();
-        if(!isGrounded) SetGravityScale();
     }
 
     private void Move()
     {
-        if (!canWalk) return;
+        if (!canWalk || (playerState == PlayerState.Dashing || playerState == PlayerState.Stunned)) return;
 
-        if(_onStairs)
+        if(onLader)
         {
-            StairsMovement();
+            LaderMovement();
             return;
         }
 
@@ -145,8 +216,8 @@ public class Movement : MonoBehaviour
 
         if(direction != 0f)
         {
-            if (direction > 0f) _gfx.GetComponent<SpriteRenderer>().flipX = false;
-            else if (direction < 0f) _gfx.GetComponent<SpriteRenderer>().flipX = true;
+            if (direction > 0f) _player.gfxFlipX = false;
+            else if (direction < 0f) _player.gfxFlipX = true;
         }
 
         if (Mathf.Abs(direction) < 0.1f) return;
@@ -164,21 +235,14 @@ public class Movement : MonoBehaviour
         else _rigidbody.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
     }
 
-    private void StairsMovement()
+    private void LaderMovement()
     {
-        Vector2 direction = new Vector2(0f, moveInputValue.y).normalized;
-
-        if (Mathf.Abs(direction.y) > 0f) _animator.speed = 1f;
-        else _animator.speed = 0f;
-
-        _rigidbody.AddForce(direction * _stairsSpeed * 100f, ForceMode2D.Force);
-
-        switch (_getOfTheLadderMethode)
+        if (moveInputValue.magnitude < 0.1f)
+            _animator.speed = 0f;
+        else
         {
-            case GetOfTheLadderMethode.Direction:
-                if (IsGoindToLeaveTheStairs(direction.y))
-                    { GetOfTheLadder(); }
-                break;
+            _animator.speed = 1f;
+            _rigidbody.AddForce(moveInputValue.normalized * _onLaderSpeed * 100f, ForceMode2D.Force);
         }
     }
 
@@ -190,20 +254,11 @@ public class Movement : MonoBehaviour
             lastMoveInputValue = moveInputValue;
             if (Mathf.Abs(moveInputValue.x) > 0.1f) {
                 lastMoveInputX = moveInputValue.x;
-
-
-                switch (_getOfTheLadderMethode)
-                {
-                    case GetOfTheLadderMethode.Input:
-                        if (Mathf.Abs(moveInputValue.y) < 0.1f && isGrounded)
-                            { GetOfTheLadder(); }
-                        break;
-                }
             }
             if (Mathf.Abs(moveInputValue.y) > 0.1f) {
                 lastMoveInputY = moveInputValue.y;
 
-                GetOnLadder();
+                GetOnLader();
             }
         }
     }
@@ -216,18 +271,16 @@ public class Movement : MonoBehaviour
 
         _animator.SetBool("InAir", !isGrounded);
 
-        if (!canWalk) return;
-
         if (beforeIsGrounded != isGrounded)
         {
             if (isGrounded)
             {
-                if (canChangeRigidbodyDamping) _rigidbody.linearDamping = _groundDrag;
-                _player.movementScript.SetGravityScale(false);
+                curDrag = _groundDrag;
+                curGravityScale = normalGravityScale;
             }
             else
             {
-                if (canChangeRigidbodyDamping) _rigidbody.linearDamping = 0f;
+                curDrag = 0f;
             }
 
             beforeIsGrounded = isGrounded;
@@ -256,16 +309,23 @@ public class Movement : MonoBehaviour
 
     private void SpeedControl()
     {
+        if(playerState != PlayerState.Dashing)
+        {
+            float flatVel = -_rigidbody.linearVelocity.y;
+            if(flatVel > _maxFallSpeed)
+            {
+                float limitedVelocity = -_maxFallSpeed;
+                _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, limitedVelocity);
+            }
+        }
+
         if (!canWalk) return;
 
-        if(_onStairs)
+        if(onLader)
         {
-            float flatVel = _rigidbody.linearVelocity.y;
-
-            if (Mathf.Abs(flatVel) > speed)
+            if (_rigidbody.linearVelocity.magnitude > _onLaderSpeed)
             {
-                float limitedVelocity = _rigidbody.linearVelocity.normalized.y * speed;
-                _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, limitedVelocity); 
+                _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * _onLaderSpeed;
             }
             return;
         }
@@ -285,7 +345,7 @@ public class Movement : MonoBehaviour
 
             if (Mathf.Abs(flatVel) > speed)
             {
-                float limitedVelocity = _rigidbody.linearVelocity.normalized.x * speed;
+                float limitedVelocity = (_rigidbody.linearVelocity.normalized.x > 0f ? 1f : -1f) * speed;
                 _rigidbody.linearVelocity = new Vector2(limitedVelocity, _rigidbody.linearVelocity.y);
             }
         }
@@ -293,131 +353,60 @@ public class Movement : MonoBehaviour
 
     private void useGravity(bool use)
     {
-        if (!canChangeGravityScale) return;
-        float gravityScale = _rigidbody.gravityScale;
-
-        if (use) _rigidbody.gravityScale = 1f;
-        else _rigidbody.gravityScale = 0f;
-
-        //if(_rb.gravityScale != gravityScale) _rb.linearVelocity = Vector2.zero;
+        if (use) gravityScale = curGravityScale;
+        else gravityScale = 0f;
     }
 
-    private void SetGravityScale()
-    {
-        if (_rigidbody.linearVelocity.y < 0f)
-        {
-            SetGravityScale(true);
-        }
-        else
-        {
-            SetGravityScale(false);
-        }
-    }
 
-    public void SetGravityScale(bool fallingGravityScale)
-    {
-        if (!canChangeGravityScale) return;
-        _rigidbody.gravityScale = fallingGravityScale ? this.fallingGravityScale : normalGravityScale;
-    }
 
-    private Stairs GetCurrentStairs()
+    //Stairs
+    public void GetOnLader()
     {
-        Stairs closestStairs = null;
-        float closestStairsDistance = _maxDistanceFromStairsCenter;
-        foreach (var stairs in curStairsList)
+        if(playerState == PlayerState.Movement && IsGoingToGetOnLader())
         {
-            float distance = Vector2.Distance(new Vector2(transform.position.x, 0f), new Vector2(stairs.transform.position.x, 0f));
-            if(distance < closestStairsDistance)
+            if(onGetOnLader != null)
             {
-                closestStairsDistance = distance;
-                closestStairs = stairs;
+                onGetOnLader();
             }
-        }
-
-        return closestStairs;
-    }
-
-    private void GetOnLadder()
-    {
-        if (Mathf.Abs(moveInputValue.x) < 0.1f && !_onStairs && canWalk)
-        {
-            _curStairs = GetCurrentStairs();
-
-            if (_curStairs)
-            {
-                gameObject.layer = _onStairsLayer;
-                _onStairs = true;
-                useGravity(false);
-                _rigidbody.linearDamping = _onStairsDrag;
-                canChangeRigidbodyDamping = false;
-                canChangeGravityScale = false;
-                _animator.SetBool("Climbing", true);
-
-                foreach (var playerComponent in _player.components)
-                {
-                    playerComponent.enabled = false;
-                }
-            }
+            _onLader = true;
+            useGravity(false);
+            curDrag = _onLaderDrag;
+            canChangeGravityScale = false;
+            canChangeRigidbodyDamping = false;
+            _animator.SetBool("Climbing", true);
+            _animator.Play("Climbing");
         }
     }
 
-    private void GetOfTheLadder()
+    public void GetOfLader()
     {
-        if (_onStairs && canWalk)
+        if(_onLader)
         {
-            _curStairs = null;
-
-            gameObject.layer = _playerStartLayer;
-            _onStairs = false;
-            useGravity(true);
-            _rigidbody.linearDamping = isGrounded ? _groundDrag : 0f;
-            canChangeRigidbodyDamping = true;
+            _onLader = false;
             canChangeGravityScale = true;
+            canChangeRigidbodyDamping = true;
+            useGravity(true);
+            curDrag = isGrounded ? _groundDrag : 0f;
             _animator.SetBool("Climbing", false);
             _animator.speed = 1f;
-
-            foreach (var playerComponent in _player.components)
-            {
-                playerComponent.enabled = true;
-            }
         }
     }
 
-    private bool IsGoindToLeaveTheStairs(float moveDirection)
+    private bool IsGoingToGetOnLader()
     {
-        if (!_curStairs) return false;
-
-        foreach (var stairsExit in _curStairs.stairsExits)
-        {
-            float exitDirection = (new Vector2(0f, stairsExit.position.y) - new Vector2(0f, _curStairs.transform.position.y)).normalized.y;
-
-            if(exitDirection == moveDirection && Mathf.Abs(transform.position.y - stairsExit.position.y) <= 0.1f)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return _curLaders.Count > 0;
     }
 
-    private void SetStairsExits()
+    public void AddLader(Lader stairs)
     {
-        foreach (var stairs in FindObjectsOfType<Stairs>())
-        {
-            if (stairs.stairsExits.Count == 0)
-            {
-                GameObject stairsExitTransform = new GameObject("StairsExit");
-                stairsExitTransform.transform.position = new Vector2(stairs.transform.position.x, stairs.transform.position.y + stairs.transform.localScale.y / 2f - _halfPlayersHeight - 0.1f);
-                stairsExitTransform.transform.SetParent(stairs.transform, true);
+        _curLaders.Add(stairs);
+    }
 
-                stairs.stairsExits.Add(stairsExitTransform.transform);
-
-                GameObject stairsExitTransform2 = new GameObject("StairsExit");
-                stairsExitTransform2.transform.position = new Vector2(stairs.transform.position.x, stairs.transform.position.y - stairs.transform.localScale.y / 2f + _halfPlayersHeight + 0.1f);
-                stairsExitTransform2.transform.SetParent(stairs.transform, true);
-
-                stairs.stairsExits.Add(stairsExitTransform2.transform);
-            }
-        }
+    public bool RemoveLader(Lader stairs)
+    {
+        bool removed = _curLaders.Remove(stairs);
+        if (_curLaders.Count == 0)
+            GetOfLader();
+        return removed;
     }
 }

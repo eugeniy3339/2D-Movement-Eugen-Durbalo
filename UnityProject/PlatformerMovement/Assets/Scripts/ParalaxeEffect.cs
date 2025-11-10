@@ -9,6 +9,9 @@ public class ParalaxeLayer
     public Transform layerTransform;
     public float horizontalSpeed;
     public float verticalSpeed;
+    public bool multiplyWithLayerStartPosition = true;
+    public bool multiplyWithMoveWithStartPosition = true;
+    [HideInInspector] public Vector2 layerStartPosition;
 }
 
 public enum ParalaxeUpdateMode
@@ -27,6 +30,7 @@ public enum ParalaxeMoveWith
 public class ParalaxeEffect : MonoBehaviour
 {
     [SerializeField] private ParalaxeUpdateMode _paralaxeUpdateMode;
+    private ParalaxeMoveWith _beforeParalaxeMoveWith;
     [SerializeField] private ParalaxeMoveWith _paralaxeMoveWith;
 
     [SerializeField] private Camera _camera;
@@ -35,11 +39,14 @@ public class ParalaxeEffect : MonoBehaviour
     [SerializeField] private List<ParalaxeLayer> _paralaxeLayers = new List<ParalaxeLayer>();
 
     private Transform moveWithTransform;
+    private Vector2 _moveWithTransformStartPosition;
 
     private void Awake()
     {
         if(_camera == null) _camera = Camera.main;
         if (_player == null) _player = Player.Instance;
+
+        _beforeParalaxeMoveWith = _paralaxeMoveWith;
 
         switch (_paralaxeMoveWith)
         {
@@ -50,43 +57,50 @@ public class ParalaxeEffect : MonoBehaviour
                 moveWithTransform = _player.transform;
                 break;
         }
+
+        _moveWithTransformStartPosition = moveWithTransform.position;
+
+        foreach(var layer in _paralaxeLayers)
+        {
+            layer.layerStartPosition = layer.layerTransform.position;
+        }
     }
 
     private void LateUpdate()
     {
-        switch (_paralaxeUpdateMode)
-        {
-            case ParalaxeUpdateMode.LateUpdate:
-                UpdateParalaxeLayers();
-                break;
-        }
+        if (_paralaxeUpdateMode != ParalaxeUpdateMode.LateUpdate) UpdateParalaxeLayers();
     }
 
     private void Update()
     {
-        switch (_paralaxeUpdateMode)
+        if (_paralaxeUpdateMode != ParalaxeUpdateMode.Update) UpdateParalaxeLayers();
+
+        if (_beforeParalaxeMoveWith != _paralaxeMoveWith)
         {
-            case ParalaxeUpdateMode.Update:
-                UpdateParalaxeLayers();
-                break;
+            _beforeParalaxeMoveWith = _paralaxeMoveWith;
+
+            switch (_paralaxeMoveWith)
+            {
+                case ParalaxeMoveWith.Camera:
+                    moveWithTransform = _camera.transform;
+                    break;
+                case ParalaxeMoveWith.Player:
+                    moveWithTransform = _player.transform;
+                    break;
+            }
         }
     }
 
     private void FixedUpdate()
     {
-        switch (_paralaxeUpdateMode)
-        {
-            case ParalaxeUpdateMode.FixedUpdate:
-                UpdateParalaxeLayers();
-                break;
-        }
+        if (_paralaxeUpdateMode != ParalaxeUpdateMode.FixedUpdate) UpdateParalaxeLayers();
     }
 
     private void UpdateParalaxeLayers()
     {
         foreach (var paralaxeLayer in _paralaxeLayers)
         {
-            paralaxeLayer.layerTransform.position = new Vector2(moveWithTransform.position.x * paralaxeLayer.horizontalSpeed, moveWithTransform.position.y * paralaxeLayer.verticalSpeed);
+            paralaxeLayer.layerTransform.position = (paralaxeLayer.multiplyWithMoveWithStartPosition ? _moveWithTransformStartPosition : Vector2.zero) + (paralaxeLayer.multiplyWithLayerStartPosition ? paralaxeLayer.layerStartPosition : Vector2.zero) + new Vector2(moveWithTransform.position.x * paralaxeLayer.horizontalSpeed, moveWithTransform.position.y * paralaxeLayer.verticalSpeed);
         }
     }
 }

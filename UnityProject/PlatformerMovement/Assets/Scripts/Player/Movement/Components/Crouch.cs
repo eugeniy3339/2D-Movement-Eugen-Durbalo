@@ -18,10 +18,15 @@ public class Crouch : PlayerComponent
 
     private bool _crouch;
 
+    protected virtual void Awake()
+    {
+        _animator = GetComponentInChildren<Animator>();
+    }
+
     protected virtual void Start()
     {
         _player = Player.Instance;
-        _animator = GetComponentInChildren<Animator>();
+        _player.movementScript.onGetOnLader += OnGetOnStairs;
     }
 
     private void Update()
@@ -47,6 +52,7 @@ public class Crouch : PlayerComponent
 
     public virtual void CrouchAction(bool crouch)
     {
+        if (_player.movementScript.onLader || (_player.GetComponent<WallJump>() && _player.GetComponent<WallJump>().onWall)) return;
         _crouch = crouch;
         _animator.SetBool("Crouching", crouch);
         foreach (var component in _player.components)
@@ -58,6 +64,7 @@ public class Crouch : PlayerComponent
                 { runComponent.RunAction(false); }
                 else if(runComponent.run != runComponent.lastRunInput)
                 { runComponent.RunAction(runComponent.lastRunInput); return; }
+                break;
             }
         }
 
@@ -70,5 +77,10 @@ public class Crouch : PlayerComponent
         {
             _player.movementScript.speed = _player.movementScript.isGrounded ? _player.movementScript.speed = _crouchWalkSpeed : _player.movementScript.walkSpeed;
         }
+    }
+
+    protected virtual void OnGetOnStairs()
+    {
+        CrouchAction(false);
     }
 }

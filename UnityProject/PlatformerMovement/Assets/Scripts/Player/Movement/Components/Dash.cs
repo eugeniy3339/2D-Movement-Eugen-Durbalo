@@ -32,13 +32,20 @@ public class Dash : PlayerComponent
     [SerializeField] private Sprite _trailSprite;
     [SerializeField] private float _trailLifeTime;
 
+    private bool _dashing;
+
+    private void Awake()
+    {
+        _rigidbody = GetComponentInChildren<Rigidbody2D>();
+        _animator = GetComponentInChildren<Animator>();
+    }
+
     private void Start()
     {
         _player = Player.Instance;
-        _rigidbody = GetComponentInChildren<Rigidbody2D>();
-        _animator = GetComponentInChildren<Animator>();
-
         _gfx = _player.gfx;
+
+        _player.movementScript.onPlayerStateChanged += OnPlayerStateChanged;
     }
 
     private void Update()
@@ -57,10 +64,11 @@ public class Dash : PlayerComponent
 
     public void DashAction()
     {
-        if (!_player.movementScript.canWalk) return;
+        if (!_player.movementScript.canWalk || _player.movementScript.playerState != PlayerState.Movement) return;
         if (_curDashCooldown < _dashCooldown) return;
 
         _player.movementScript.canWalk = false;
+        _player.movementScript.playerState = PlayerState.Dashing;
         StartCoroutine(DashCoro());
     }
 
@@ -73,9 +81,9 @@ public class Dash : PlayerComponent
 
         Vector2 lastTrailSpawnTransform = transform.position;
 
-        //_gfx.transform.up = _playerInputsManager.lastMoveInputXY.normalized;
-
         _animator.Play("StartDash");
+
+        _dashing = true;
 
         while (Vector2.Distance(transform.position, startPosition) < _distance)
         {
@@ -85,23 +93,39 @@ public class Dash : PlayerComponent
 
             yield return new WaitForSeconds(Time.deltaTime);
 
-            if (_trailLifeTime != 0f) { if (Vector2.Distance(transform.position, lastTrailSpawnTransform) >= _distance / 4) { StartCoroutine("SpawnTrail"); lastTrailSpawnTransform = transform.position; } }
+            if (_trailLifeTime != 0f) { if (Vector2.Distance(transform.position, lastTrailSpawnTransform) >= _distance / 4) { SpawnTrail(); lastTrailSpawnTransform = transform.position; } }
             if (dashTime >= _maxDashTime) break;
         }
 
-        _rigidbody.linearVelocityY = 0f;
-        _player.movementScript.canWalk = true;
-        _animator.SetBool("Dash", false);
-        //_gfx.transform.up = Vector3.up;
-        _curDashCooldown = 0f;
+        StopDash();
     }
 
-    private IEnumerator SpawnTrail()
+    private void SpawnTrail()
     {
         GameObject trail = Instantiate(_playerTrailPrefab, transform.position, _gfx.transform.rotation);
         if(_trailSprite != null) trail.GetComponent<SpriteRenderer>().sprite = _trailSprite;
         else trail.GetComponentInChildren<SpriteRenderer>().sprite = _gfx.GetComponentInChildren<SpriteRenderer>().sprite;
-        yield return new WaitForSeconds(_trailLifeTime);
-        Destroy(trail);
+        Destroy(trail, _trailLifeTime);
+    }
+
+    private void StopDash()
+    {
+        StopCoroutine("DashCoro");
+
+        _rigidbody.linearVelocityY = 0f;
+        _animator.SetBool("Dash", false);
+        _curDashCooldown = 0f;
+        _dashing = false;
+        _player.movementScript.curGravityScale = _player.movementScript.normalGravityScale;
+
+        if (_player.movementScript.playerState == PlayerState.Dashing) { _player.movementScript.canWalk = true; _player.movementScript.playerState = PlayerState.Movement; }
+    }
+
+    private void OnPlayerStateChanged(PlayerState beforeState, PlayerState currentState)
+    {
+        if (_dashing && currentState == PlayerState.Stunned)
+        {
+            StopDash();
+        }
     }
 }

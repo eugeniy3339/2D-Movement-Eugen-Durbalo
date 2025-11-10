@@ -51,13 +51,16 @@ public class Run : PlayerComponent
     {
         this.run = run;
         _player.movementScript.run = this.run;
-        foreach (var component in _player.components)
+        if (run)
         {
-            if (component.GetType() == typeof(Crouch))
+            foreach (var component in _player.components)
             {
-                Crouch crouchComponent = component as Crouch;
-                if (run)
+                if (component.GetType() == typeof(Crouch))
+                {
+                    Crouch crouchComponent = component as Crouch;
                     crouchComponent.CrouchAction(false);
+                    break;
+                }
             }
         }
 

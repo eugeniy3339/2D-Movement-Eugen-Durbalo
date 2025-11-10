@@ -15,8 +15,9 @@ public class Jump : PlayerComponent
     protected Rigidbody2D _rigidbody;
     protected Animator _animator;
 
-    [SerializeField] protected float _jumpHeight;
-    [SerializeField] protected float _minJumpCooldowm = 0.1f;
+    [Header("Jump")]
+    [SerializeField] protected float _jumpHeight = 30f;
+    [SerializeField] protected float _minJumpTime = 0.1f;
     protected float _jumpCooldown;
     protected float _curJumpCooldown;
 
@@ -24,25 +25,39 @@ public class Jump : PlayerComponent
     protected bool _jumping;
     protected bool _canceledJump;
 
+    [SerializeField] protected float _afterJumpGravityScale = 5f;
+
     protected virtual void Start()
     {
         _player = Player.Instance;
         _rigidbody = GetComponentInChildren<Rigidbody2D>();
         _animator = GetComponentInChildren<Animator>();
 
-        _jumpCooldown = _minJumpCooldowm;
+        _jumpCooldown = _minJumpTime;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
+        CancelJumpIfFalling();
         ResetJump();
+    }
+
+    protected virtual void CancelJumpIfFalling()
+    {
+        if(_jumping)
+        {
+            if (_rigidbody.linearVelocity.y <= 0f && !_canceledJump)
+            {
+                CancelJumpAction();
+            }
+        }
     }
 
     public virtual void OnJump(InputAction.CallbackContext context)
     {
         if(context.started)
         {
-            JumpAction();
+            JumpAction(Vector2.up, _jumpHeight, true);
         }
         else if(context.canceled)
         {
@@ -50,13 +65,15 @@ public class Jump : PlayerComponent
         }
     }
 
-    protected virtual void JumpAction()
+    protected virtual void JumpAction(Vector2 direction, float jumpStrengh, bool checkIfIsGrounded)
     {
         if(!_canJump) return;
 
-        if (_player.movementScript.isGrounded)
+        if ((_player.movementScript.onLader || !checkIfIsGrounded || _player.movementScript.isGrounded) && _player.movementScript.playerState == PlayerState.Movement)
         {
             _jumping = true;
+            _player.movementScript.GetOfLader();
+            _player.movementScript.curDrag = 0f;
             _player.movementScript.slopesSpeedControl = false;
             _player.movementScript.isGrounded = false;
             _animator.SetBool("InAir", true);
@@ -64,10 +81,10 @@ public class Jump : PlayerComponent
             _canceledJump = false;
             _curJumpCooldown = 0f;
             _player.movementScript.checkIfIsGrounded = false;
-            _jumpCooldown = _minJumpCooldowm;
+            _jumpCooldown = _minJumpTime;
 
             _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
-            _rigidbody.AddForce(transform.up * _jumpHeight, ForceMode2D.Impulse);
+            _rigidbody.AddForce(direction * jumpStrengh, ForceMode2D.Impulse);
 
             _animator.Play("Jumping");
         }
@@ -75,11 +92,11 @@ public class Jump : PlayerComponent
 
     protected virtual void CancelJumpAction()
     {
-        if (!_canceledJump && _jumping && _rigidbody.linearVelocity.y > 0f)
+        if (!_canceledJump && _jumping)
         {
-            _rigidbody.linearVelocity = new Vector2(_rigidbody.linearVelocity.x, 0f);
-            _player.movementScript.SetGravityScale(false);
+            _player.movementScript.curGravityScale = _afterJumpGravityScale;
             _canceledJump = true;
+            _animator.Play(_animator.GetFloat("x") > 0f ? "FallingWhileMoving" : "Falling");
         }
     }
 
@@ -93,13 +110,13 @@ public class Jump : PlayerComponent
         {
             if (_jumping)
             {
-                _player.movementScript.canWalk = true;
+                if(_player.movementScript.playerState == PlayerState.Movement) _player.movementScript.canWalk = true;
                 _player.movementScript.checkIfIsGrounded = true;
+                _canJump = true;
                 if (_player.movementScript.isGrounded)
                 {
                     _jumping = false;
                     _player.movementScript.slopesSpeedControl = true;
-                    _canJump = true;
                 }
             }
         }

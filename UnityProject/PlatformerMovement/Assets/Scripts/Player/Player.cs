@@ -16,11 +16,31 @@ public class Player : MonoBehaviour
     public List<PlayerComponent> components = new List<PlayerComponent>();
 
     [Tooltip("Your character Graphics (need to rotate your character while dashing)")] public Transform gfx;
+    private SpriteRenderer _gfxSpriteRenderer;
+
+    [HideInInspector] public bool canFlipGfx = true;
+
+    private bool _gfxFlipX;
+    public bool gfxFlipX {
+        get {
+            return _gfxFlipX;
+        }
+        set {
+            if(canFlipGfx)
+            {
+                _gfxFlipX = value;
+                _gfxSpriteRenderer.flipX = value;
+            }
+        }
+    }
 
     private void Awake()
     {
         Instance = this;
         movementScript = GetComponent<Movement>();
+        _gfxSpriteRenderer = gfx.GetComponent<SpriteRenderer>();
+
+        canFlipGfx = true;
 
         foreach (var component in GetComponentsInChildren<PlayerComponent>())
         {
