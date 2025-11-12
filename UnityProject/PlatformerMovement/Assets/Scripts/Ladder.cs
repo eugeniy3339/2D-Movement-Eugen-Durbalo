@@ -1,7 +1,8 @@
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(Collider2D))]
-public class Lader : MonoBehaviour
+public class Ladder : MonoBehaviour
 {
     private Collider2D _collider;
 
@@ -15,18 +16,20 @@ public class Lader : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         Movement playerMovement = collision.GetComponent<Movement>();
-        if(playerMovement && !playerMovement.curLaders.Contains(this))
+        if(playerMovement && !playerMovement.curLadders.Contains(this))
         {
-            playerMovement.AddLader(this);
+            playerMovement.AddLadder(this);
+            if (playerMovement.getOnTheLadderMehode != GetOnTheLadderMethode.Input)
+                playerMovement.GetOnLadder();
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
         Movement playerMovement = collision.GetComponent<Movement>();
-        if (playerMovement && playerMovement.curLaders.Contains(this))
+        if (playerMovement && playerMovement.curLadders.Contains(this))
         {
-            playerMovement.RemoveLader(this);
+            playerMovement.RemoveLadder(this);
         }
     }
 }

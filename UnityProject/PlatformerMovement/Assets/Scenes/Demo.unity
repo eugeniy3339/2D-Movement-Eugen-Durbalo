@@ -482,6 +482,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2914302259404973809, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _jumpCheckType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914302259404973809, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _raycastDistance
+      value: 0.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 2914302259404973809, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _wallsLayerMask.m_Bits
+      value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 5706507615759887960, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
+      propertyPath: _getOnTheLadderMethode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6291976062460644854, guid: 29a8c135e6a28b748b6ac6dbd29ed10f, type: 3}
       propertyPath: m_Name
       value: Player(PlatformerMovement)
@@ -642,7 +658,7 @@ GameObject:
   - component: {fileID: 225294208}
   - component: {fileID: 225294207}
   - component: {fileID: 225294206}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Square (7)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2009,21 +2025,21 @@ MonoBehaviour:
     horizontalSpeed: 0.8
     verticalSpeed: 0
     multiplyWithLayerStartPosition: 1
-    multiplyWithMoveWithStartPosition: 1
+    multiplyWithMoveWithStartPosition: 0
     layerStartPosition: {x: 0, y: 0}
   - name: Middle Layer
     layerTransform: {fileID: 33755454}
     horizontalSpeed: 0.6
     verticalSpeed: 0
     multiplyWithLayerStartPosition: 1
-    multiplyWithMoveWithStartPosition: 1
+    multiplyWithMoveWithStartPosition: 0
     layerStartPosition: {x: 0, y: 0}
   - name: Background
     layerTransform: {fileID: 1160259856}
     horizontalSpeed: 0.4
     verticalSpeed: 0
     multiplyWithLayerStartPosition: 1
-    multiplyWithMoveWithStartPosition: 1
+    multiplyWithMoveWithStartPosition: 0
     layerStartPosition: {x: 0, y: 0}
 --- !u!1 &1730622018
 GameObject:

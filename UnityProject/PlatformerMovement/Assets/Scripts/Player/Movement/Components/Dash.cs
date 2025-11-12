@@ -119,6 +119,7 @@ public class Dash : PlayerComponent
         _player.movementScript.curGravityScale = _player.movementScript.normalGravityScale;
 
         if (_player.movementScript.playerState == PlayerState.Dashing) { _player.movementScript.canWalk = true; _player.movementScript.playerState = PlayerState.Movement; }
+        if (_player.movementScript.getOnTheLadderMehode != GetOnTheLadderMethode.Input) _player.movementScript.GetOnLadder();
     }
 
     private void OnPlayerStateChanged(PlayerState beforeState, PlayerState currentState)

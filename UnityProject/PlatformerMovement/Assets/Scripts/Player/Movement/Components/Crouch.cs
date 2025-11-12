@@ -26,7 +26,7 @@ public class Crouch : PlayerComponent
     protected virtual void Start()
     {
         _player = Player.Instance;
-        _player.movementScript.onGetOnLader += OnGetOnStairs;
+        _player.movementScript.onGetOnLadder += OnGetOnStairs;
     }
 
     private void Update()
@@ -52,7 +52,7 @@ public class Crouch : PlayerComponent
 
     public virtual void CrouchAction(bool crouch)
     {
-        if (_player.movementScript.onLader || (_player.GetComponent<WallJump>() && _player.GetComponent<WallJump>().onWall)) return;
+        if (_player.movementScript.onLadder || (_player.GetComponent<WallJump>() && _player.GetComponent<WallJump>().onWall)) return;
         _crouch = crouch;
         _animator.SetBool("Crouching", crouch);
         foreach (var component in _player.components)

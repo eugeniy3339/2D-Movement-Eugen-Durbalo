@@ -33,10 +33,11 @@ Ak nemáte špecifické požiadavky, odporúčam nemeníť hodnoty premenných _
  
  */
 
-public enum GetOfTheLadderMethode
+public enum GetOnTheLadderMethode
 {
     Input,
-    Direction
+    Collision,
+    Both
 }
 
 public enum PlayerState
@@ -108,14 +109,17 @@ public class Movement : MonoBehaviour
     [Header("Gravity")]
     public float normalGravityScale = 1f;
     [SerializeField] private float _maxFallSpeed = 50f;
-    [Header("Lader")]
-    [SerializeField] private float _onLaderDrag = 15f;
-    [SerializeField] private float _onLaderSpeed = 3.5f;
-    private List<Lader> _curLaders = new List<Lader>();
-    public List<Lader> curLaders { get { return _curLaders; } }
-    private bool _onLader;
-    public bool onLader { get { return _onLader; } }
-    public event Action onGetOnLader;
+    [Header("Ladders")]
+    [SerializeField] private float _onLadderDrag = 15f;
+    [SerializeField] private float _onLadderSpeed = 3.5f;
+    [SerializeField] private bool _canMoveHorizontalyOnLadders = true;
+    [SerializeField] private GetOnTheLadderMethode _getOnTheLadderMethode;
+    public GetOnTheLadderMethode getOnTheLadderMehode { get { return _getOnTheLadderMethode; } }
+    private List<Ladder> _curLadders = new List<Ladder>();
+    public List<Ladder> curLadders { get { return _curLadders; } }
+    private bool _onLadder;
+    public bool onLadder { get { return _onLadder; } }
+    public event Action onGetOnLadder;
 
     private float _curGravityScale;
     public float curGravityScale
@@ -203,9 +207,9 @@ public class Movement : MonoBehaviour
     {
         if (!canWalk || (playerState == PlayerState.Dashing || playerState == PlayerState.Stunned)) return;
 
-        if(onLader)
+        if(onLadder)
         {
-            LaderMovement();
+            LadderMovement();
             return;
         }
 
@@ -235,14 +239,14 @@ public class Movement : MonoBehaviour
         else _rigidbody.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
     }
 
-    private void LaderMovement()
+    private void LadderMovement()
     {
         if (moveInputValue.magnitude < 0.1f)
             _animator.speed = 0f;
         else
         {
             _animator.speed = 1f;
-            _rigidbody.AddForce(moveInputValue.normalized * _onLaderSpeed * 100f, ForceMode2D.Force);
+            _rigidbody.AddForce(new Vector2(_canMoveHorizontalyOnLadders ? moveInputValue.x : 0f, moveInputValue.y).normalized * _onLadderSpeed * 100f, ForceMode2D.Force);
         }
     }
 
@@ -258,7 +262,8 @@ public class Movement : MonoBehaviour
             if (Mathf.Abs(moveInputValue.y) > 0.1f) {
                 lastMoveInputY = moveInputValue.y;
 
-                GetOnLader();
+                if (getOnTheLadderMehode != GetOnTheLadderMethode.Collision)
+                    GetOnLadder();
             }
         }
     }
@@ -321,11 +326,11 @@ public class Movement : MonoBehaviour
 
         if (!canWalk) return;
 
-        if(onLader)
+        if(onLadder)
         {
-            if (_rigidbody.linearVelocity.magnitude > _onLaderSpeed)
+            if (_rigidbody.linearVelocity.magnitude > _onLadderSpeed)
             {
-                _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * _onLaderSpeed;
+                _rigidbody.linearVelocity = _rigidbody.linearVelocity.normalized * _onLadderSpeed;
             }
             return;
         }
@@ -359,18 +364,18 @@ public class Movement : MonoBehaviour
 
 
 
-    //Stairs
-    public void GetOnLader()
+    //Ladders
+    public void GetOnLadder()
     {
-        if(playerState == PlayerState.Movement && IsGoingToGetOnLader())
+        if(playerState == PlayerState.Movement && IsGoingToGetOnLadder())
         {
-            if(onGetOnLader != null)
+            if(onGetOnLadder != null)
             {
-                onGetOnLader();
+                onGetOnLadder();
             }
-            _onLader = true;
+            _onLadder = true;
             useGravity(false);
-            curDrag = _onLaderDrag;
+            curDrag = _onLadderDrag;
             canChangeGravityScale = false;
             canChangeRigidbodyDamping = false;
             _animator.SetBool("Climbing", true);
@@ -378,11 +383,11 @@ public class Movement : MonoBehaviour
         }
     }
 
-    public void GetOfLader()
+    public void GetOfLadder()
     {
-        if(_onLader)
+        if(_onLadder)
         {
-            _onLader = false;
+            _onLadder = false;
             canChangeGravityScale = true;
             canChangeRigidbodyDamping = true;
             useGravity(true);
@@ -392,21 +397,21 @@ public class Movement : MonoBehaviour
         }
     }
 
-    private bool IsGoingToGetOnLader()
+    private bool IsGoingToGetOnLadder()
     {
-        return _curLaders.Count > 0;
+        return _curLadders.Count > 0;
     }
 
-    public void AddLader(Lader stairs)
+    public void AddLadder(Ladder ladder)
     {
-        _curLaders.Add(stairs);
+        _curLadders.Add(ladder);
     }
 
-    public bool RemoveLader(Lader stairs)
+    public bool RemoveLadder(Ladder ladder)
     {
-        bool removed = _curLaders.Remove(stairs);
-        if (_curLaders.Count == 0)
-            GetOfLader();
+        bool removed = _curLadders.Remove(ladder);
+        if (_curLadders.Count == 0)
+            GetOfLadder();
         return removed;
     }
 }

@@ -87,7 +87,7 @@ public class Slide : Crouch
 
     private void SlideAction(bool slide)
     {
-        if (_player.movementScript.onLader || (_player.GetComponent<WallJump>() && _player.GetComponent<WallJump>().onWall)) return;
+        if (_player.movementScript.onLadder || (_player.GetComponent<WallJump>() && _player.GetComponent<WallJump>().onWall)) return;
         if (_curSlideCooldown < _slideCooldown && slide) return; 
 
         if (slide && _player.movementScript.playerState == PlayerState.Movement && _player.movementScript.isGrounded && !_sliding)

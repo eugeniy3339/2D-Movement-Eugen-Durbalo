@@ -69,10 +69,10 @@ public class Jump : PlayerComponent
     {
         if(!_canJump) return;
 
-        if ((_player.movementScript.onLader || !checkIfIsGrounded || _player.movementScript.isGrounded) && _player.movementScript.playerState == PlayerState.Movement)
+        if ((_player.movementScript.onLadder || !checkIfIsGrounded || _player.movementScript.isGrounded) && _player.movementScript.playerState == PlayerState.Movement)
         {
             _jumping = true;
-            _player.movementScript.GetOfLader();
+            _player.movementScript.GetOfLadder();
             _player.movementScript.curDrag = 0f;
             _player.movementScript.slopesSpeedControl = false;
             _player.movementScript.isGrounded = false;
@@ -97,6 +97,8 @@ public class Jump : PlayerComponent
             _player.movementScript.curGravityScale = _afterJumpGravityScale;
             _canceledJump = true;
             _animator.Play(_animator.GetFloat("x") > 0f ? "FallingWhileMoving" : "Falling");
+            if (_player.movementScript.getOnTheLadderMehode != GetOnTheLadderMethode.Input)
+                _player.movementScript.GetOnLadder();
         }
     }
 

@@ -1,15 +1,8 @@
 using UnityEngine;
 
-public enum WallJumpCheckType
-{
-    OnCollisionEnter,
-    Raycast
-}
-
 public class WallJump : Jump
 {
     [Header("Wall Jump")]
-    [SerializeField] private WallJumpCheckType _jumpCheckType;
     private float _beforeWallJumpAngle = 70f;
     private Vector2 _wallJumpDirection;
 
@@ -31,7 +24,8 @@ public class WallJump : Jump
     private bool _changingWallJumpAngleOrForce = false;
     //private LineRenderer _lineRenderer;
 
-    private Collision2D _lastWallCollision;
+    private Collider2D _lastWall;
+    private bool _isLastWallOnTheLeftSide;
 
     protected override void Start()
     {
@@ -42,7 +36,7 @@ public class WallJump : Jump
         _beforeWallJumpAngle = _wallJumpAngle;
         _wallJumpDirection = GetWallJumpDirection(_wallJumpAngle);
 
-        _player.movementScript.onGetOnLader += OnGetOnStairs;
+        _player.movementScript.onGetOnLadder += ExitWall;
     }
 
     protected override void Update()
@@ -78,16 +72,15 @@ public class WallJump : Jump
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (_jumpCheckType != WallJumpCheckType.OnCollisionEnter) return;
-
         if (!_curWall)
         {
             if(collision.gameObject.tag == "Wall")
             {
-                _lastWallCollision = collision;
+                _lastWall = collision.collider;
+                _isLastWallOnTheLeftSide = (collision.GetContact(0).point - new Vector2(transform.position.x, transform.position.y)).x < 0 ? true : false;
                 if (!_player.movementScript.isGrounded)
                 {
-                    GetOnWall(collision);
+                    GetOnWall(_lastWall, _isLastWallOnTheLeftSide);
                 }
             }
         }
@@ -95,10 +88,8 @@ public class WallJump : Jump
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (_jumpCheckType != WallJumpCheckType.OnCollisionEnter) return;
-
-        if (_lastWallCollision != null && collision.collider == _lastWallCollision.collider)
-            _lastWallCollision = null;
+        if (_lastWall != null && collision.collider == _lastWall)
+            _lastWall = null;
 
         if (_curWall)
         {
@@ -109,12 +100,12 @@ public class WallJump : Jump
         }
     }
 
-    private void GetOnWall(Collision2D collision)
+    private void GetOnWall(Collider2D wallCollider, bool isWallOnTheLeftSide)
     {
-        if (_player.movementScript.onLader) return;
+        if (_player.movementScript.onLadder) return;
         print("GetOnWall");
-        _curWall = collision.collider;
-        _isWallOnTheLeftSide = (collision.GetContact(0).point - new Vector2(transform.position.x, transform.position.y)).x < 0 ? true : false;
+        _curWall = wallCollider;
+        _isWallOnTheLeftSide = isWallOnTheLeftSide;
         _player.canFlipGfx = false;
         _gfxSpriteRenderer.flipX = !_isWallOnTheLeftSide;
         _player.movementScript.curDrag = _onWallDrag;
@@ -147,15 +138,10 @@ public class WallJump : Jump
     protected override void CancelJumpAction()
     {
         base.CancelJumpAction();
-        if(!_onWall && _lastWallCollision != null)
+        if(!_onWall && _lastWall != null)
         {
-            GetOnWall(_lastWallCollision);
+            GetOnWall(_lastWall, _isLastWallOnTheLeftSide);
         }
-    }
-
-    private void OnGetOnStairs()
-    {
-        ExitWall();
     }
 
     private void OnValidate()
