@@ -1,0 +1,1 @@
+C:\2dMovement\2D-Movement-Eugen-Durbalo\UnityProject\PlatformerMovement\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\build\intermediates\cxx\RelWithDebInfo\2l1r5j2f\obj\arm64-v8a
