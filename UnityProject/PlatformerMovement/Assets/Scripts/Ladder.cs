@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(Collider2D))]
 public class Ladder : MonoBehaviour
 {
     private Collider2D _collider;
+    public static Action<Ladder> onAddedLadder;
 
     private void Awake()
     {
@@ -19,8 +20,6 @@ public class Ladder : MonoBehaviour
         if(playerMovement && !playerMovement.curLadders.Contains(this))
         {
             playerMovement.AddLadder(this);
-            if (playerMovement.getOnTheLadderMehode != GetOnTheLadderMethode.Input)
-                playerMovement.GetOnLadder();
         }
     }
 

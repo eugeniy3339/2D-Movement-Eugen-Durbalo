@@ -97,8 +97,7 @@ public class Jump : PlayerComponent
             _player.movementScript.curGravityScale = _afterJumpGravityScale;
             _canceledJump = true;
             _animator.Play(_animator.GetFloat("x") > 0f ? "FallingWhileMoving" : "Falling");
-            if (_player.movementScript.getOnTheLadderMehode != GetOnTheLadderMethode.Input)
-                _player.movementScript.GetOnLadder();
+            _player.movementScript.TryGetOnTheLadder();
         }
     }
 

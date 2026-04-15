@@ -78,11 +78,9 @@ public class Movement : MonoBehaviour
     public delegate void OnPlayerStateChanged(PlayerState beforeState, PlayerState newState);
     public event OnPlayerStateChanged onPlayerStateChanged;
 
-    private Transform _gfx;
-
     [Header("Movement Settings/Ground Checking")]
     [SerializeField] private LayerMask _ground;
-    [SerializeField] private float _halfPlayersHeight = 1f;
+    [SerializeField] private float _distanceFromPivotToTheGround = 1f;
     [Header("Movement Settings/Movement")]
     public float walkSpeed = 2f;
     [SerializeField] private float _airMultiplier = 0.8f;
@@ -94,7 +92,6 @@ public class Movement : MonoBehaviour
     [HideInInspector] public float lastMoveInputY;
     [Header("Movement/Slopes")]
     [SerializeField] private float _maxSlopeAngle = 40f;
-    private RaycastHit2D _slopeHit;
 
     private int _playerStartLayer;
     [HideInInspector] public float speed;
@@ -102,10 +99,14 @@ public class Movement : MonoBehaviour
     [HideInInspector] public bool canChangeRigidbodyDamping = true;
     [HideInInspector] public bool canChangeGravityScale = true;
     [HideInInspector] public bool slopesSpeedControl = true;
-    [HideInInspector] public bool checkIfIsGrounded = true;
     [HideInInspector] public bool run;
+
+    [HideInInspector] public bool checkIfIsGrounded = true;
     [HideInInspector] public bool isGrounded;
-    [HideInInspector] public bool beforeIsGrounded;
+    [HideInInspector] public bool onSlope { get; private set; }
+    private RaycastHit2D _groundHit;
+    public RaycastHit2D groundHit { get { return _groundHit; } }
+    [HideInInspector] public bool beforeIsGrounded { get; private set; }
     [Header("Gravity")]
     public float normalGravityScale = 1f;
     [SerializeField] private float _maxFallSpeed = 50f;
@@ -184,18 +185,16 @@ public class Movement : MonoBehaviour
 
     private void Start()
     {
-        _player = Player.Instance;
-        _gfx = _player.gfx;
-
-        
+        _player = Player.Instance;        
     }
 
     private void Update()
     {
         SpeedControl();
-        IsGrounded();
+        isGrounded = IsGrounded(out _groundHit);
+        onSlope = OnSlope(_groundHit);
 
-        useGravity(!OnSlope());
+        useGravity(!onSlope);
     }
 
     private void FixedUpdate()
@@ -205,7 +204,7 @@ public class Movement : MonoBehaviour
 
     private void Move()
     {
-        if (!canWalk || (playerState == PlayerState.Dashing || playerState == PlayerState.Stunned)) return;
+        if (CanMove()) return;
 
         if(onLadder)
         {
@@ -228,15 +227,20 @@ public class Movement : MonoBehaviour
 
         Vector2 moveDir = new Vector2(direction, 0f).normalized;
 
-        if (OnSlope())
+        if (onSlope)
         {
-            moveDir = GetSlopeMoveDirection(moveDir);
+            moveDir = GetSlopeMoveDirection(moveDir, _groundHit.normal);
             moveDir *= 8f;
         }
 
         Debug.DrawRay(transform.position, moveDir.normalized * 10f, Color.green);
         if (isGrounded) _rigidbody.AddForce(moveDir.normalized * speed * 100f, ForceMode2D.Force);
         else _rigidbody.AddForce(moveDir.normalized * speed * 100f * _airMultiplier, ForceMode2D.Force);
+    }
+
+    private bool CanMove()
+    {
+        return !canWalk || (playerState == PlayerState.Dashing || playerState == PlayerState.Stunned);
     }
 
     private void LadderMovement()
@@ -262,23 +266,26 @@ public class Movement : MonoBehaviour
             if (Mathf.Abs(moveInputValue.y) > 0.1f) {
                 lastMoveInputY = moveInputValue.y;
 
-                if (getOnTheLadderMehode != GetOnTheLadderMethode.Collision)
-                    GetOnLadder();
+                if (_getOnTheLadderMethode != GetOnTheLadderMethode.Collision)
+                    TryGetOnTheLadder();
             }
         }
     }
 
-    private void IsGrounded()
+    private bool IsGrounded(out RaycastHit2D raycastHit2D)
     {
-        if (!checkIfIsGrounded) return;
-        Debug.DrawLine(transform.position, new Vector2(transform.position.x, transform.position.y - _halfPlayersHeight - 0.2f));
-        isGrounded = Physics2D.Raycast(transform.position, Vector3.down, _halfPlayersHeight + 0.2f, _ground);
+        if (!checkIfIsGrounded) { raycastHit2D = new RaycastHit2D(); return this.isGrounded; }
+        Vector3 raycastStartPosition = transform.position + Vector3.up * (_distanceFromPivotToTheGround > 0f ? 0f : 1f);
+        float raycastDistance = _distanceFromPivotToTheGround > 0f ? _distanceFromPivotToTheGround + 0.2f : 1.2f;
+        raycastHit2D = Physics2D.Raycast(transform.position, Vector3.down, _distanceFromPivotToTheGround + 0.2f, _ground);
 
-        _animator.SetBool("InAir", !isGrounded);
+        Debug.DrawLine(raycastStartPosition, new Vector2(raycastStartPosition.x, raycastStartPosition.y - raycastDistance));
 
-        if (beforeIsGrounded != isGrounded)
+        _animator.SetBool("InAir", !raycastHit2D);
+
+        if (beforeIsGrounded != raycastHit2D)
         {
-            if (isGrounded)
+            if (raycastHit2D)
             {
                 curDrag = _groundDrag;
                 curGravityScale = normalGravityScale;
@@ -288,26 +295,26 @@ public class Movement : MonoBehaviour
                 curDrag = 0f;
             }
 
-            beforeIsGrounded = isGrounded;
+            beforeIsGrounded = raycastHit2D;
         }
+
+        return raycastHit2D;
     }
 
-    public bool OnSlope()
+    public bool OnSlope(RaycastHit2D groundHit)
     {
-        _slopeHit = Physics2D.Raycast(transform.position, Vector2.down, _halfPlayersHeight + 0.2f, _ground);
-
-        if (_slopeHit == true)
+        if (groundHit == true)
         {
-            float angle = Vector2.Angle(Vector2.up, _slopeHit.normal);
+            float angle = Vector2.Angle(Vector2.up, groundHit.normal);
             return angle < _maxSlopeAngle && angle != 0f;
         }
 
         return false;
     }
 
-    public Vector2 GetSlopeMoveDirection(Vector2 normal)
+    public Vector2 GetSlopeMoveDirection(Vector2 moveDirection, Vector2 normal)
     {
-        Vector3 dir = Vector3.ProjectOnPlane(normal, _slopeHit.normal).normalized;
+        Vector3 dir = Vector3.ProjectOnPlane(moveDirection, normal).normalized;
 
         return new Vector2(dir.x, dir.y);
     }
@@ -335,7 +342,7 @@ public class Movement : MonoBehaviour
             return;
         }
 
-        if (OnSlope())
+        if (onSlope)
         {
             if(!slopesSpeedControl) return;
 
@@ -365,22 +372,27 @@ public class Movement : MonoBehaviour
 
 
     //Ladders
-    public void GetOnLadder()
+    public void TryGetOnTheLadder()
     {
-        if(playerState == PlayerState.Movement && IsGoingToGetOnLadder())
+        if(CanGetOnTheLadder())
         {
-            if(onGetOnLadder != null)
-            {
-                onGetOnLadder();
-            }
-            _onLadder = true;
-            useGravity(false);
-            curDrag = _onLadderDrag;
-            canChangeGravityScale = false;
-            canChangeRigidbodyDamping = false;
-            _animator.SetBool("Climbing", true);
-            _animator.Play("Climbing");
+            GetOnTheLadder();
         }
+    }
+
+    public void GetOnTheLadder()
+    {
+        if (onGetOnLadder != null)
+        {
+            onGetOnLadder();
+        }
+        _onLadder = true;
+        useGravity(false);
+        curDrag = _onLadderDrag;
+        canChangeGravityScale = false;
+        canChangeRigidbodyDamping = false;
+        _animator.SetBool("Climbing", true);
+        _animator.Play("Climbing");
     }
 
     public void GetOfLadder()
@@ -397,14 +409,25 @@ public class Movement : MonoBehaviour
         }
     }
 
-    private bool IsGoingToGetOnLadder()
+    private bool CanGetOnTheLadder()
     {
-        return _curLadders.Count > 0;
+        return _curLadders.Count > 0 && playerState == PlayerState.Movement  && ( _getOnTheLadderMethode == GetOnTheLadderMethode.Input ? Mathf.Abs(moveInputValue.y) >= 0.1f : true );
     }
 
     public void AddLadder(Ladder ladder)
     {
         _curLadders.Add(ladder);
+        if(_getOnTheLadderMethode == GetOnTheLadderMethode.Input)
+        {
+            if(Mathf.Abs(moveInputValue.y) >= 0.1f)
+            {
+                TryGetOnTheLadder();
+            }
+        }
+        else
+        {
+            TryGetOnTheLadder();
+        }
     }
 
     public bool RemoveLadder(Ladder ladder)

@@ -47,7 +47,7 @@ public class Slide : Crouch
         if(_sliding)
         {
             if (_player.movementScript.isGrounded)
-            { _player.gfx.right = _player.movementScript.GetSlopeMoveDirection(Vector2.right); }
+            { _player.gfx.right = _player.movementScript.GetSlopeMoveDirection(Vector2.right, _player.movementScript.groundHit.normal); }
             else
             { _player.gfx.right = Vector2.right; SlideAction(false); }
 
@@ -94,9 +94,9 @@ public class Slide : Crouch
         {
             _curSlideCooldown = 0f;
             Vector2 moveDir = new Vector2(_player.movementScript.lastMoveInputX, 0f);
-            if(_player.movementScript.OnSlope())
+            if(_player.movementScript.onSlope)
             {
-                moveDir = _player.movementScript.GetSlopeMoveDirection(moveDir);
+                moveDir = _player.movementScript.GetSlopeMoveDirection(moveDir, _player.movementScript.groundHit.normal);
             }
             _player.movementScript.curDrag = _slideGroundDrag;
             _player.movementScript.curGravityScale = _player.movementScript.normalGravityScale;
