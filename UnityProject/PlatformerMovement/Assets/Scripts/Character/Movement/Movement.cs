@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Movement : MonoBehaviour
@@ -8,6 +9,10 @@ public class Movement : MonoBehaviour
     [SerializeField] private float _normalSpeed = 3f;
     public float normalSpeed { get { return _normalSpeed; } }
     [SerializeField] private float airMultiplier = 0.8f;
+
+    private float lastDir;
+
+    public Action<float> onMoveDirChanged;
 
     private void Awake()
     {
@@ -27,6 +32,12 @@ public class Movement : MonoBehaviour
 
     protected void Move(float dir)
     {
+        if(lastDir != dir)
+        {
+            lastDir = dir;
+            onMoveDirChanged?.Invoke(dir);
+        }
+
         float airMultiplier = movementManager.isGrounded ? 1f : this.airMultiplier;
         if (airMultiplier == 0) return;
 
