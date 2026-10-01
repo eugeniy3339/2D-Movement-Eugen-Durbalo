@@ -82,7 +82,6 @@ public class Jump : MonoBehaviour
         if (!jumping) return;
         if (rigidbody.linearVelocityY > 0f) rigidbody.linearVelocityY = rigidbody.linearVelocityY * stopJumpMultiplier;
         jumping = false;
-        print("StopJump");
 
         onJumpEnded?.Invoke();
     }

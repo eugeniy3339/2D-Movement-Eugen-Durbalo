@@ -8,6 +8,7 @@ public class MovementManager : MonoBehaviour {
     private Character character;
 
     private Movement movement;
+    private Jump jump;
 
     public float curSpeed { get; private set; }
     [SerializeField] private float maxFallingSpeed = 50f;
@@ -25,6 +26,7 @@ public class MovementManager : MonoBehaviour {
     public bool onSlope { get; private set; }
 
     [SerializeField] private float defaultGravityScale = 2f;
+    private bool canChangeUseGravity = true;
     private bool _uG;
     public bool useGravity {
         get
@@ -33,9 +35,27 @@ public class MovementManager : MonoBehaviour {
         }
         set
         {
+            if (!canChangeUseGravity) return;
             if(rigidbody)
                 rigidbody.gravityScale = value ? defaultGravityScale : 0f;
             _uG = value;
+        }
+    }
+
+    private bool canChangeLinearDamping = true;
+    private float _lD;
+    public float linearDamping
+    {
+        get
+        {
+            return _lD;
+        }
+        set
+        {
+            if (!canChangeLinearDamping) return;
+            if (rigidbody)
+                rigidbody.linearDamping = value;
+            _lD = value;
         }
     }
 
@@ -49,6 +69,7 @@ public class MovementManager : MonoBehaviour {
         character = GetComponent<Character>();
 
         movement = GetComponent<Movement>();
+        jump = GetComponent<Jump>();
 
         if (feetPos == null)
         {
@@ -147,12 +168,12 @@ public class MovementManager : MonoBehaviour {
 
     private void OnGrounded()
     {
-        rigidbody.linearDamping = groundFriction;
+        linearDamping = groundFriction;
     }
 
     private void OnUngrounded()
     {
-        rigidbody.linearDamping = 0f;
+        linearDamping = 0f;
     }
 
     private void OnGotOnSlope()
@@ -165,12 +186,26 @@ public class MovementManager : MonoBehaviour {
         useGravity = true;
     }
 
+    private void OnJump()
+    {
+        linearDamping = 0f;
+        canChangeLinearDamping = false;
+    }
+
+    private void OnJumpEnded()
+    {
+        canChangeLinearDamping = true;
+        linearDamping = isGrounded ? groundFriction : 0f;
+    }
+
     private void OnEnable()
     {
         onGrounded += OnGrounded;
         onUngrounded += OnUngrounded;
         onGotOnSlope += OnGotOnSlope;
         onGotOfSlope += OnGotOfSlope;
+        jump.onJumped += OnJump;
+        jump.onJumpEnded += OnJumpEnded;
     }
 
     private void OnDisable()
@@ -179,6 +214,8 @@ public class MovementManager : MonoBehaviour {
         onUngrounded -= OnUngrounded;
         onGotOnSlope -= OnGotOnSlope;
         onGotOfSlope -= OnGotOfSlope;
+        jump.onJumped -= OnJump;
+        jump.onJumpEnded -= OnJumpEnded;
     }
 
 
