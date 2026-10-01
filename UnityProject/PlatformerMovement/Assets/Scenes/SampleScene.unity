@@ -644,11 +644,12 @@ GameObject:
   - component: {fileID: 1439890329}
   - component: {fileID: 1439890328}
   - component: {fileID: 1439890322}
+  - component: {fileID: 1439890330}
+  - component: {fileID: 1439890331}
   - component: {fileID: 1439890321}
   - component: {fileID: 1439890327}
   - component: {fileID: 1439890326}
-  - component: {fileID: 1439890330}
-  - component: {fileID: 1439890331}
+  - component: {fileID: 1439890332}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -873,6 +874,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 33c04eaa-7790-4a63-a0bd-2ddf3c42d8e2
     m_ActionName: 'Default/Jump[/Keyboard/space]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1439890328}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
+        m_MethodName: OnRun
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: c43767da-5232-4b38-ac00-ebfce972275d
+    m_ActionName: 'Default/Run[/Keyboard/ctrl]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
@@ -912,6 +929,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 862a1846433274e4aa2e44c81e3dc47d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterVisualsHandler
+--- !u!114 &1439890332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1439890320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6983a70d7fea48e49be211cfbb6d7dc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Run
+  _runningSpeed: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

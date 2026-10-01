@@ -8,6 +8,9 @@ public class CharacterVisualsHandler : MonoBehaviour
     private MovementManager movementManager;
     private Movement movement;
     private Jump jump;
+    private Run run;
+
+    private float moveDir;
 
     private bool _f;
     private bool flipped
@@ -23,6 +26,8 @@ public class CharacterVisualsHandler : MonoBehaviour
         }
     }
 
+    private bool running;
+
     private void Awake()
     {
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -31,6 +36,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         movementManager = GetComponent<MovementManager>();
         movement = GetComponent<Movement>();
         jump = GetComponent<Jump>();
+        run = GetComponent<Run>();
     }
 
     private void OnGrounded()
@@ -53,9 +59,31 @@ public class CharacterVisualsHandler : MonoBehaviour
         animator.Play("StartFalling");
     }
 
+    private void OnStartedRunning()
+    {
+        SetRun(true);
+    }
+
+    private void OnStoppedRunning()
+    {
+        SetRun(false);
+    }
+
+    private void SetRun(bool run)
+    {
+        running = run;
+        SetMoveDir(moveDir);
+    }
+
     private void OnMoveDirChanged(float moveDir)
     {
-        animator.SetFloat("x", moveDir == 0 ? 0f : 1f);
+        SetMoveDir(moveDir);
+    }
+
+    private void SetMoveDir(float moveDir)
+    {
+        this.moveDir = moveDir;
+        animator.SetFloat("x", moveDir == 0 ? 0f : (running ? 1f : 0.5f));
         if (moveDir == 0f) return;
         flipped = moveDir < 0f;
     }
@@ -67,6 +95,8 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped += OnJumped;
         jump.onJumpEnded += OnStoppedJump;
         movement.onMoveDirChanged += OnMoveDirChanged;
+        run.onStartedRunning += OnStartedRunning;
+        run.onStoppedRunning += OnStoppedRunning;
     }
 
     private void OnDisable()
@@ -76,5 +106,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped -= OnJumped;
         jump.onJumpEnded -= OnStoppedJump;
         movement.onMoveDirChanged -= OnMoveDirChanged;
+        run.onStartedRunning -= OnStartedRunning;
+        run.onStoppedRunning -= OnStoppedRunning;
     }
 }

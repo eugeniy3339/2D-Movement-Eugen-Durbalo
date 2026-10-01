@@ -9,6 +9,7 @@ public class MovementManager : MonoBehaviour {
 
     private Movement movement;
     private Jump jump;
+    private Run run;
 
     public float curSpeed { get; private set; }
     [SerializeField] private float maxFallingSpeed = 50f;
@@ -70,6 +71,7 @@ public class MovementManager : MonoBehaviour {
 
         movement = GetComponent<Movement>();
         jump = GetComponent<Jump>();
+        run = GetComponent<Run>();
 
         if (feetPos == null)
         {
@@ -198,6 +200,16 @@ public class MovementManager : MonoBehaviour {
         linearDamping = isGrounded ? groundFriction : 0f;
     }
 
+    private void OnStartedRunning()
+    {
+        curSpeed = run.runningSpeed;
+    }
+
+    private void OnStoppedRunning()
+    {
+        curSpeed = movement.normalSpeed;
+    }
+
     private void OnEnable()
     {
         onGrounded += OnGrounded;
@@ -206,6 +218,8 @@ public class MovementManager : MonoBehaviour {
         onGotOfSlope += OnGotOfSlope;
         jump.onJumped += OnJump;
         jump.onJumpEnded += OnJumpEnded;
+        run.onStartedRunning += OnStartedRunning;
+        run.onStoppedRunning += OnStoppedRunning;
     }
 
     private void OnDisable()
@@ -216,6 +230,8 @@ public class MovementManager : MonoBehaviour {
         onGotOfSlope -= OnGotOfSlope;
         jump.onJumped -= OnJump;
         jump.onJumpEnded -= OnJumpEnded;
+        run.onStartedRunning -= OnStartedRunning;
+        run.onStoppedRunning -= OnStoppedRunning;
     }
 
 
