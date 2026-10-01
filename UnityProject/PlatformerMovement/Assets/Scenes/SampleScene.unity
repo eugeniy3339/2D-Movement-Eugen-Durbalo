@@ -805,7 +805,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _normalSpeed: 7
-  airMultiplier: 0.8
+  airMultiplier: 1
   canMove: 1
   moveDir: {x: 0, y: 0}
 --- !u!114 &1439890328
@@ -974,7 +974,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Dash
   dashSpeed: 20
-  dashTime: 0.2
+  dashTime: 0.3
   dashCooldown: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -40,6 +41,12 @@ public class MovementManager : MonoBehaviour
     public RaycastHit2D groundHit { get { return _groundHit; } }
     public bool onSlope { get; private set; }
 
+    [SerializeField] private bool canClimbTheWalls = true;
+    private const string WALL_TAG = "Wall";
+    private List<Collider2D> collidingWalls = new List<Collider2D>();
+    private Collider2D curWall;
+    [SerializeField] private float wallFriction = 10f;
+
     [SerializeField] private float defaultGravityScale = 2f;
     private bool canChangeUseGravity = true;
     private bool _uG;
@@ -80,6 +87,8 @@ public class MovementManager : MonoBehaviour
     public event Action onUngrounded;
     public event Action onGotOnSlope;
     public event Action onGotOfSlope;
+    public event Action<Collider2D> onGotOnTheWall;
+    public event Action OnGotOfWall;
 
     private void Awake()
     {
@@ -202,6 +211,69 @@ public class MovementManager : MonoBehaviour
         }
     }
 
+
+
+    //Wall Climbing
+
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        AddWall(collision);
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        RemoveWall(collision);
+    }
+
+
+
+    private void AddWall(Collision2D collision)
+    {
+        if (collision.collider.tag != WALL_TAG) return;
+
+        Vector2 dirToTheCollisionContact = collision.contacts[0].point - new Vector2(transform.position.x, transform.position.y);
+        if (Mathf.Abs(dirToTheCollisionContact.x) > 0.1f)
+        {
+            collidingWalls.Add(collision.collider);
+
+            if (CanGetOnTheWall(collision.collider))
+                GetOnTheWall(collision.collider);
+        }
+    }
+
+    private bool CanGetOnTheWall(Collider2D collider)
+    {
+        return !isGrounded && curWall != null && movementState == MovementState.Default;
+    }
+
+    private void GetOnTheWall(Collider2D collider)
+    {
+        curWall = collider;
+        movementState = MovementState.OnWall;
+        linearDamping = wallFriction;
+        onGotOnTheWall?.Invoke(collider);
+    }
+
+    private void RemoveWall(Collision2D collision)
+    {
+        if (collidingWalls.Contains(collision.collider))
+        {
+            collidingWalls.Remove(collision.collider);
+            GetOfTheWall();
+        }
+    }
+
+    private void GetOfTheWall()
+    {
+        if (curWall == null) return;
+
+
+    }
+
+    //Wall Climbing
+
+
     private void OnJump()
     {
         linearDamping = airFriction;
@@ -283,7 +355,9 @@ public class MovementManager : MonoBehaviour
     {
         Default,
         Jumping,
-        Dashing
+        Dashing,
+        OnWall,
+        JumpingFromWall
     }
 
 

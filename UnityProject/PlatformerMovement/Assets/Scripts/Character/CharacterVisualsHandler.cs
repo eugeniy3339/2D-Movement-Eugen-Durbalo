@@ -74,7 +74,8 @@ public class CharacterVisualsHandler : MonoBehaviour
 
     private void OnStoppedJump()
     {
-        animator.Play("StartFalling");
+        if (!dashing)
+            animator.Play("StartFalling");
     }
 
     private void OnStartedRunning()

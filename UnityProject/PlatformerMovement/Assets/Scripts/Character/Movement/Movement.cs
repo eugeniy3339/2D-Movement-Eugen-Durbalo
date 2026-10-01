@@ -12,8 +12,6 @@ public class Movement : MonoBehaviour
 
     private float lastDir;
 
-    [HideInInspector] public bool canMove = true;
-
     public Action<float> onMoveDirChanged;
 
     private void Awake()
@@ -24,7 +22,7 @@ public class Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(canMove)
+        if(movementManager.movementState == MovementManager.MovementState.Default || movementManager.movementState == MovementManager.MovementState.Jumping)
             Move();
     }
 
