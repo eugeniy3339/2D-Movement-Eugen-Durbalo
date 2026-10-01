@@ -74,7 +74,7 @@ public class Jump : MonoBehaviour
 
     protected virtual bool CanJump()
     {
-        return movementManager.isGrounded && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
+        return movementManager.isGrounded && movementManager.movementState == MovementManager.MovementState.Default && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
     }
 
     public void StopJump()

@@ -9,6 +9,7 @@ public class CharacterVisualsHandler : MonoBehaviour
     private Movement movement;
     private Jump jump;
     private Run run;
+    private Dash dash;
 
     private float moveDir;
 
@@ -21,12 +22,28 @@ public class CharacterVisualsHandler : MonoBehaviour
         }
         set
         {
+            if (dashing) return;
             _f = value;
             spriteRenderer.flipX = value;
         }
     }
 
     private bool running;
+    private bool _d;
+    private bool dashing
+    {
+        get
+        {
+            return _d;
+        }
+        set
+        {
+            _d = value;
+            animator.SetBool("IsDashing", value);
+            if(!value)
+                SetMoveDir(moveDir);
+        }
+    }
 
     private void Awake()
     {
@@ -37,6 +54,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         movement = GetComponent<Movement>();
         jump = GetComponent<Jump>();
         run = GetComponent<Run>();
+        dash = GetComponent<Dash>();
     }
 
     private void OnGrounded()
@@ -88,6 +106,17 @@ public class CharacterVisualsHandler : MonoBehaviour
         flipped = moveDir < 0f;
     }
 
+    private void OnDashStart()
+    {
+        dashing = true;
+        animator.Play("Dash");
+    }
+
+    private void OnDashEnd()
+    {
+        dashing = false;
+    }
+
     private void OnEnable()
     {
         movementManager.onGrounded += OnGrounded;
@@ -97,6 +126,8 @@ public class CharacterVisualsHandler : MonoBehaviour
         movement.onMoveDirChanged += OnMoveDirChanged;
         run.onStartedRunning += OnStartedRunning;
         run.onStoppedRunning += OnStoppedRunning;
+        dash.onDashStart += OnDashStart;
+        dash.onDashEnd += OnDashEnd;
     }
 
     private void OnDisable()
@@ -108,5 +139,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         movement.onMoveDirChanged -= OnMoveDirChanged;
         run.onStartedRunning -= OnStartedRunning;
         run.onStoppedRunning -= OnStoppedRunning;
+        dash.onDashStart -= OnDashStart;
+        dash.onDashEnd -= OnDashEnd;
     }
 }

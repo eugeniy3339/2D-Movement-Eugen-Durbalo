@@ -534,8 +534,8 @@ Transform:
   m_GameObject: {fileID: 1157454370}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.151, y: -4.5, z: 0}
-  m_LocalScale: {x: 9.472297, y: 1, z: 1}
+  m_LocalPosition: {x: 0.2759, y: -4.5, z: 0}
+  m_LocalScale: {x: 18.326052, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -650,6 +650,7 @@ GameObject:
   - component: {fileID: 1439890327}
   - component: {fileID: 1439890326}
   - component: {fileID: 1439890332}
+  - component: {fileID: 1439890333}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -671,6 +672,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MovementManager
   maxFallingSpeed: 50
   groundFriction: 10
+  airFriction: 0
   feetPos: {fileID: 15206054}
   sphereCastRadius: 0.3
   sphereCastDistance: 0.1
@@ -804,6 +806,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _normalSpeed: 7
   airMultiplier: 0.8
+  canMove: 1
   moveDir: {x: 0, y: 0}
 --- !u!114 &1439890328
 MonoBehaviour:
@@ -890,6 +893,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: c43767da-5232-4b38-ac00-ebfce972275d
     m_ActionName: 'Default/Run[/Keyboard/ctrl]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1439890328}
+        m_TargetAssemblyTypeName: PlayerInputsManager, Assembly-CSharp
+        m_MethodName: OnDash
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 36e5bfdf-cdcb-45e8-9dc8-b437f4cf1b8c
+    m_ActionName: 'Default/Dash[/Keyboard/shift]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Default
@@ -942,6 +961,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Run
   _runningSpeed: 10
+--- !u!114 &1439890333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1439890320}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 279a56e5c5cf3154981868365e308edc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Dash
+  dashSpeed: 20
+  dashTime: 0.2
+  dashCooldown: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

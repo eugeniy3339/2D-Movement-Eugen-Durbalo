@@ -3,18 +3,32 @@ using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class MovementManager : MonoBehaviour {
+public class MovementManager : MonoBehaviour
+{
     private Rigidbody2D rigidbody;
     private Character character;
 
     private Movement movement;
     private Jump jump;
     private Run run;
+    private Dash dash;
+
+    private MovementState _mS;
+    public MovementState movementState
+    {
+        get { return _mS; }
+        set
+        {
+            _mS = value;
+            onMovementStateChanged?.Invoke(value);
+        }
+    }
 
     public float curSpeed { get; private set; }
     [SerializeField] private float maxFallingSpeed = 50f;
 
     [SerializeField] private float groundFriction = 10f;
+    [SerializeField] private float airFriction = 0f;
 
     [SerializeField] private Transform feetPos;
     [SerializeField] private float sphereCastRadius = 0.3f;
@@ -29,7 +43,8 @@ public class MovementManager : MonoBehaviour {
     [SerializeField] private float defaultGravityScale = 2f;
     private bool canChangeUseGravity = true;
     private bool _uG;
-    public bool useGravity {
+    public bool useGravity
+    {
         get
         {
             return _uG;
@@ -37,7 +52,7 @@ public class MovementManager : MonoBehaviour {
         set
         {
             if (!canChangeUseGravity) return;
-            if(rigidbody)
+            if (rigidbody)
                 rigidbody.gravityScale = value ? defaultGravityScale : 0f;
             _uG = value;
         }
@@ -60,18 +75,21 @@ public class MovementManager : MonoBehaviour {
         }
     }
 
+    public event Action<MovementState> onMovementStateChanged;
     public event Action onGrounded;
     public event Action onUngrounded;
     public event Action onGotOnSlope;
     public event Action onGotOfSlope;
 
-    private void Awake() {
+    private void Awake()
+    {
         rigidbody = GetComponent<Rigidbody2D>();
         character = GetComponent<Character>();
 
         movement = GetComponent<Movement>();
         jump = GetComponent<Jump>();
         run = GetComponent<Run>();
+        dash = GetComponent<Dash>();
 
         if (feetPos == null)
         {
@@ -80,11 +98,13 @@ public class MovementManager : MonoBehaviour {
 
         curSpeed = movement.normalSpeed;
         useGravity = true;
+
+        movementState = MovementState.Default;
     }
 
     private void Start()
     {
-        
+
     }
 
     private void Update()
@@ -93,6 +113,7 @@ public class MovementManager : MonoBehaviour {
         if (this.isGrounded != isGrounded)
         {
             this.isGrounded = isGrounded;
+            SetLinearDamping();
 
             if (isGrounded)
             {
@@ -105,9 +126,10 @@ public class MovementManager : MonoBehaviour {
         }
 
         bool onSlope = OnSlope(_groundHit);
-        if(this.onSlope != onSlope)
+        if (this.onSlope != onSlope)
         {
             this.onSlope = onSlope;
+            SetUseGravity();
 
             if (onSlope)
             {
@@ -122,19 +144,33 @@ public class MovementManager : MonoBehaviour {
         SpeedControll();
     }
 
-    private bool IsGrounded(out RaycastHit2D hit) {
+    private void SetLinearDamping()
+    {
+        linearDamping = isGrounded ? groundFriction : airFriction;
+    }
+
+    private void SetUseGravity()
+    {
+        useGravity = !onSlope;
+    }
+
+    private bool IsGrounded(out RaycastHit2D hit)
+    {
         Vector2 startPos = new Vector2(feetPos.transform.position.x, feetPos.transform.position.y + sphereCastRadius);
         hit = Physics2D.CircleCast(startPos, sphereCastRadius, Vector2.down, sphereCastDistance, groundLayer);
         return hit;
     }
 
-    private bool OnSlope(RaycastHit2D hit) {
+    private bool OnSlope(RaycastHit2D hit)
+    {
         float angle = Vector2.Angle(Vector2.up, hit.normal);
         return angle > 0 && angle < maxSlopeAngle;
     }
 
     private void SpeedControll()
     {
+        if(movementState == MovementState.Dashing) return;
+
         if (onSlope)
             SlopeSpeedControll();
         else
@@ -152,7 +188,7 @@ public class MovementManager : MonoBehaviour {
 
     private void FlatSpeedControll()
     {
-        if(Mathf.Abs(rigidbody.linearVelocityX) > curSpeed)
+        if (Mathf.Abs(rigidbody.linearVelocityX) > curSpeed)
         {
             rigidbody.linearVelocityX = NormalizedFloat.NormalizeFloat(rigidbody.linearVelocityX);
         }
@@ -166,38 +202,19 @@ public class MovementManager : MonoBehaviour {
         }
     }
 
-
-
-    private void OnGrounded()
-    {
-        linearDamping = groundFriction;
-    }
-
-    private void OnUngrounded()
-    {
-        linearDamping = 0f;
-    }
-
-    private void OnGotOnSlope()
-    {
-        useGravity = false;
-    }
-
-    private void OnGotOfSlope()
-    {
-        useGravity = true;
-    }
-
     private void OnJump()
     {
-        linearDamping = 0f;
+        linearDamping = airFriction;
         canChangeLinearDamping = false;
+        movementState = MovementState.Jumping;
     }
 
     private void OnJumpEnded()
     {
+        if (movementState == MovementState.Dashing) return;
+        movementState = MovementState.Default;
         canChangeLinearDamping = true;
-        linearDamping = isGrounded ? groundFriction : 0f;
+        SetLinearDamping();
     }
 
     private void OnStartedRunning()
@@ -210,33 +227,50 @@ public class MovementManager : MonoBehaviour {
         curSpeed = movement.normalSpeed;
     }
 
+    private void OnDashStart()
+    {
+        movementState = MovementState.Dashing;
+        canChangeLinearDamping = true;
+        canChangeUseGravity = true;
+        linearDamping = airFriction;
+        useGravity = false;
+        canChangeLinearDamping = false;
+        canChangeUseGravity = false;
+    }
+
+    private void OnDashEnd()
+    {
+        movementState = MovementState.Default;
+        canChangeLinearDamping = true;
+        canChangeUseGravity = true;
+        SetLinearDamping();
+        SetUseGravity();
+    }
+
     private void OnEnable()
     {
-        onGrounded += OnGrounded;
-        onUngrounded += OnUngrounded;
-        onGotOnSlope += OnGotOnSlope;
-        onGotOfSlope += OnGotOfSlope;
         jump.onJumped += OnJump;
         jump.onJumpEnded += OnJumpEnded;
         run.onStartedRunning += OnStartedRunning;
         run.onStoppedRunning += OnStoppedRunning;
+        dash.onDashStart += OnDashStart;
+        dash.onDashEnd += OnDashEnd;
     }
 
     private void OnDisable()
     {
-        onGrounded -= OnGrounded;
-        onUngrounded -= OnUngrounded;
-        onGotOnSlope -= OnGotOnSlope;
-        onGotOfSlope -= OnGotOfSlope;
         jump.onJumped -= OnJump;
         jump.onJumpEnded -= OnJumpEnded;
         run.onStartedRunning -= OnStartedRunning;
         run.onStoppedRunning -= OnStoppedRunning;
+        dash.onDashStart -= OnDashStart;
+        dash.onDashEnd -= OnDashEnd;
     }
 
 
 
-    private Transform CreateFeetPos() {
+    private Transform CreateFeetPos()
+    {
         GameObject feetPos = new GameObject("FeetPos");
         feetPos.transform.parent = transform;
         feetPos.transform.localPosition = Vector3.zero;
@@ -244,10 +278,19 @@ public class MovementManager : MonoBehaviour {
     }
 
 
+
+    public enum MovementState
+    {
+        Default,
+        Jumping,
+        Dashing
+    }
+
+
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if(EditorApplication.isPlayingOrWillChangePlaymode)
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
             useGravity = useGravity;
     }
 #endif

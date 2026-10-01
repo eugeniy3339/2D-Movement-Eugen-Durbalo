@@ -23,7 +23,7 @@ public class PlayerJump : Jump
 
     protected override bool CanJump()
     {
-        return (movementManager.isGrounded || (curKayoteTime > 0f && !fallingAfterTheJump)) && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
+        return (movementManager.isGrounded || (curKayoteTime > 0f && !fallingAfterTheJump)) && movementManager.movementState == MovementManager.MovementState.Default && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
     }
 
     protected override void OnMinJumpTime()
