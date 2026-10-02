@@ -22,7 +22,7 @@ public class Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(movementManager.movementState == MovementManager.MovementState.Default || movementManager.movementState == MovementManager.MovementState.Jumping)
+        if(movementManager.movementState != MovementManager.MovementState.Dashing && movementManager.movementState != MovementManager.MovementState.JumpingOfWall)
             Move();
     }
 

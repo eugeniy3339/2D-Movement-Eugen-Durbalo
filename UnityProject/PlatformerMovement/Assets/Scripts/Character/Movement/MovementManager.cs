@@ -231,24 +231,38 @@ public class MovementManager : MonoBehaviour
     private void AddWall(Collision2D collision)
     {
         if (collision.collider.tag != WALL_TAG) return;
+        if (collidingWalls.Contains(collision.collider)) return;
 
-        Vector2 dirToTheCollisionContact = collision.contacts[0].point - new Vector2(transform.position.x, transform.position.y);
-        if (Mathf.Abs(dirToTheCollisionContact.x) > 0.1f)
+        /*Vector2 dirToTheCollisionContact = collision.contacts[0].point - new Vector2(transform.position.x, transform.position.y);
+        if (Mathf.Abs(dirToTheCollisionContact.x) > 0.1f)*/
         {
+            print(collision.collider);
             collidingWalls.Add(collision.collider);
-
-            if (CanGetOnTheWall(collision.collider))
-                GetOnTheWall(collision.collider);
+            GetOnTheWallIfCanTo(collision.collider);
         }
     }
 
-    private bool CanGetOnTheWall(Collider2D collider)
+    private void GetOnTheWallIfCanTo()
     {
-        return !isGrounded && curWall != null && movementState == MovementState.Default;
+        if (collidingWalls.Count > 0)
+            GetOnTheWallIfCanTo(collidingWalls[0]);
+    }
+
+    private void GetOnTheWallIfCanTo(Collider2D collider)
+    {
+        print(collider);
+        if(CanGetOnTheWall())
+            GetOnTheWall(collider);
+    }
+
+    private bool CanGetOnTheWall()
+    {
+        return !isGrounded && curWall == null && movementState == MovementState.Default;
     }
 
     private void GetOnTheWall(Collider2D collider)
     {
+        print(collider);
         curWall = collider;
         movementState = MovementState.OnWall;
         linearDamping = wallFriction;
@@ -268,11 +282,37 @@ public class MovementManager : MonoBehaviour
     {
         if (curWall == null) return;
 
-
+        curWall = null;
+        if(movementState == MovementState.OnWall)
+            movementState = MovementState.Default;
     }
+
 
     //Wall Climbing
 
+
+
+    private void OnMovementStateChanged(MovementState movementState)
+    {
+        if (movementState == MovementState.Default)
+        {
+            GetOnTheWallIfCanTo();
+        }
+        else if(movementState != MovementState.OnWall)
+        {
+            GetOfTheWall();
+        }
+    }
+
+    private void OnUngrounded()
+    {
+        GetOnTheWallIfCanTo();
+    }
+
+    private void OnGrounded()
+    {
+        GetOfTheWall();
+    }
 
     private void OnJump()
     {
@@ -327,6 +367,9 @@ public class MovementManager : MonoBehaviour
         run.onStoppedRunning += OnStoppedRunning;
         dash.onDashStart += OnDashStart;
         dash.onDashEnd += OnDashEnd;
+        onMovementStateChanged += OnMovementStateChanged;
+        onUngrounded += OnUngrounded;
+        onGrounded += OnGrounded;
     }
 
     private void OnDisable()
@@ -337,6 +380,9 @@ public class MovementManager : MonoBehaviour
         run.onStoppedRunning -= OnStoppedRunning;
         dash.onDashStart -= OnDashStart;
         dash.onDashEnd -= OnDashEnd;
+        onMovementStateChanged -= OnMovementStateChanged;
+        onUngrounded -= OnUngrounded;
+        onGrounded -= OnGrounded;
     }
 
 
@@ -357,7 +403,7 @@ public class MovementManager : MonoBehaviour
         Jumping,
         Dashing,
         OnWall,
-        JumpingFromWall
+        JumpingOfWall
     }
 
 
