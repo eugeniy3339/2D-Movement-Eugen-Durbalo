@@ -792,6 +792,9 @@ MonoBehaviour:
   minJumpTime: 0.1
   jumpCooldown: 0
   stopJumpMultiplier: 0.5
+  wallJumpMinJumpTime: 0.1
+  wallJumpDirection: {x: 1, y: 4.24}
+  wallJumpForce: 20
   kayoteTime: 0.1
   inputFuncTime: 0.1
 --- !u!114 &1439890327

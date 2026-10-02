@@ -52,6 +52,13 @@ public class PlayerJump : Jump
             JumpIfCanTo();
     }
 
+    protected override void OnGotOnTheWall(Collider2D wall)
+    {
+        base.OnGotOnTheWall(wall);
+        if (curInputFuncTime > 0f)
+            JumpIfCanTo();
+    }
+
     private void OnUngrounded()
     {
         curKayoteTime = kayoteTime;
