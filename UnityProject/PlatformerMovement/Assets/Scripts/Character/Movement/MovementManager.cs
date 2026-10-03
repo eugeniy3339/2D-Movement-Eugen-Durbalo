@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -40,6 +41,12 @@ public class MovementManager : MonoBehaviour
     public RaycastHit2D groundHit { get { return _groundHit; } }
     public bool onSlope { get; private set; }
 
+    [SerializeField] private bool canClimbTheWalls = true;
+    private const string WALL_TAG = "Wall";
+    private List<Collider2D> collidingWalls = new List<Collider2D>();
+    public Collider2D curWall { get; private set; }
+    [SerializeField] private float wallFriction = 10f;
+
     [SerializeField] private float defaultGravityScale = 2f;
     private bool canChangeUseGravity = true;
     private bool _uG;
@@ -80,6 +87,8 @@ public class MovementManager : MonoBehaviour
     public event Action onUngrounded;
     public event Action onGotOnSlope;
     public event Action onGotOfSlope;
+    public event Action<Collider2D> onGotOnTheWall;
+    public event Action OnGotOfWall;
 
     private void Awake()
     {
@@ -202,6 +211,108 @@ public class MovementManager : MonoBehaviour
         }
     }
 
+
+
+    //Wall Climbing
+
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        AddWall(collision);
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        RemoveWall(collision);
+    }
+
+
+
+    private void AddWall(Collision2D collision)
+    {
+        if (collision.collider.tag != WALL_TAG) return;
+        if (collidingWalls.Contains(collision.collider)) return;
+
+        /*Vector2 dirToTheCollisionContact = collision.contacts[0].point - new Vector2(transform.position.x, transform.position.y);
+        if (Mathf.Abs(dirToTheCollisionContact.x) > 0.1f)*/
+        {
+            collidingWalls.Add(collision.collider);
+            GetOnTheWallIfCanTo(collision.collider);
+        }
+    }
+
+    private void GetOnTheWallIfCanTo()
+    {
+        if (collidingWalls.Count > 0)
+            GetOnTheWallIfCanTo(collidingWalls[0]);
+    }
+
+    private void GetOnTheWallIfCanTo(Collider2D collider)
+    {
+        if(CanGetOnTheWall())
+            GetOnTheWall(collider);
+    }
+
+    private bool CanGetOnTheWall()
+    {
+        return !isGrounded && curWall == null && movementState == MovementState.Default;
+    }
+
+    private void GetOnTheWall(Collider2D collider)
+    {
+        curWall = collider;
+        linearDamping = wallFriction;
+        movementState = MovementState.OnWall;
+        onGotOnTheWall?.Invoke(collider);
+    }
+
+    private void RemoveWall(Collision2D collision)
+    {
+        if (collidingWalls.Contains(collision.collider))
+        {
+            collidingWalls.Remove(collision.collider);
+            GetOfTheWall();
+        }
+    }
+
+    private void GetOfTheWall()
+    {
+        if (curWall == null) return;
+
+        curWall = null;
+        SetLinearDamping();
+        if(movementState == MovementState.OnWall)
+            movementState = MovementState.Default;
+        OnGotOfWall?.Invoke();
+    }
+
+
+    //Wall Climbing
+
+
+
+    private void OnMovementStateChanged(MovementState movementState)
+    {
+        if (movementState == MovementState.Default)
+        {
+            GetOnTheWallIfCanTo();
+        }
+        else if(movementState != MovementState.OnWall)
+        {
+            GetOfTheWall();
+        }
+    }
+
+    private void OnUngrounded()
+    {
+        GetOnTheWallIfCanTo();
+    }
+
+    private void OnGrounded()
+    {
+        GetOfTheWall();
+    }
+
     private void OnJump()
     {
         linearDamping = airFriction;
@@ -209,12 +320,19 @@ public class MovementManager : MonoBehaviour
         movementState = MovementState.Jumping;
     }
 
+    private void OnWallJump(Vector2 jumpDir)
+    {
+        linearDamping = airFriction;
+        canChangeLinearDamping = false;
+        movementState = MovementState.JumpingOfWall;
+    }
+
     private void OnJumpEnded()
     {
         if (movementState == MovementState.Dashing) return;
-        movementState = MovementState.Default;
         canChangeLinearDamping = true;
         SetLinearDamping();
+        movementState = MovementState.Default;
     }
 
     private void OnStartedRunning()
@@ -240,31 +358,39 @@ public class MovementManager : MonoBehaviour
 
     private void OnDashEnd()
     {
-        movementState = MovementState.Default;
         canChangeLinearDamping = true;
         canChangeUseGravity = true;
         SetLinearDamping();
         SetUseGravity();
+        movementState = MovementState.Default;
     }
 
     private void OnEnable()
     {
         jump.onJumped += OnJump;
-        jump.onJumpEnded += OnJumpEnded;
+        jump.onWallJumped += OnWallJump;
+        jump.onJumpStopped += OnJumpEnded;
         run.onStartedRunning += OnStartedRunning;
         run.onStoppedRunning += OnStoppedRunning;
         dash.onDashStart += OnDashStart;
         dash.onDashEnd += OnDashEnd;
+        onMovementStateChanged += OnMovementStateChanged;
+        onUngrounded += OnUngrounded;
+        onGrounded += OnGrounded;
     }
 
     private void OnDisable()
     {
         jump.onJumped -= OnJump;
-        jump.onJumpEnded -= OnJumpEnded;
+        jump.onWallJumped -= OnWallJump;
+        jump.onJumpStopped -= OnJumpEnded;
         run.onStartedRunning -= OnStartedRunning;
         run.onStoppedRunning -= OnStoppedRunning;
         dash.onDashStart -= OnDashStart;
         dash.onDashEnd -= OnDashEnd;
+        onMovementStateChanged -= OnMovementStateChanged;
+        onUngrounded -= OnUngrounded;
+        onGrounded -= OnGrounded;
     }
 
 
@@ -283,7 +409,9 @@ public class MovementManager : MonoBehaviour
     {
         Default,
         Jumping,
-        Dashing
+        Dashing,
+        OnWall,
+        JumpingOfWall
     }
 
 

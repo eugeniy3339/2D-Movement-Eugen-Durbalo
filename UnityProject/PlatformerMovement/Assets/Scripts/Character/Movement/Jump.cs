@@ -15,11 +15,16 @@ public class Jump : MonoBehaviour
 
     [SerializeField] private float stopJumpMultiplier = 0.5f;
 
+    [SerializeField] private float wallJumpMinJumpTime = 0.1f;
+    [SerializeField, Tooltip("Wall jump right direction")] private Vector2 wallJumpDirection = Vector2.one;
+    [SerializeField] private float wallJumpForce = 10f;
+
     protected bool jumping;
     protected bool fallingAfterTheJump;
 
-    public Action onJumped;
-    public Action onJumpEnded;
+    public event Action onJumped;
+    public event Action<Vector2> onWallJumped;
+    public event Action onJumpStopped;
 
     private void Awake()
     {
@@ -29,10 +34,10 @@ public class Jump : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (minJumpTime > 0f)
+        if (curMinJumpTime > 0f)
         {
-            minJumpTime -= Time.deltaTime;
-            if (minJumpTime <= 0f)
+            curMinJumpTime -= Time.deltaTime;
+            if (curMinJumpTime <= 0f)
                 OnMinJumpTime();
         }
 
@@ -43,7 +48,7 @@ public class Jump : MonoBehaviour
                 OnJumpCooldown();
         }
 
-        if (jumping && minJumpTime <= 0f && rigidbody.linearVelocityY <= 0f)
+        if (jumping && curMinJumpTime <= 0f && rigidbody.linearVelocityY <= 0f)
             StopJump();
     }
 
@@ -56,6 +61,11 @@ public class Jump : MonoBehaviour
         if (CanJump())
         {
             jump();
+            return true;
+        }
+        else if(CanWallJump())
+        {
+            WallJump();
             return true;
         }
 
@@ -72,9 +82,27 @@ public class Jump : MonoBehaviour
         onJumped?.Invoke();
     }
 
+    private void WallJump()
+    {
+        float xMultiplier = movementManager.curWall != null ? NormalizedFloat.NormalizeFloat(transform.position.x - movementManager.curWall.transform.position.x) : 1f;
+        Vector2 jumpDir = new Vector2(wallJumpDirection.x * xMultiplier, wallJumpDirection.y).normalized;
+
+        jumping = true;
+        fallingAfterTheJump = true;
+        curMinJumpTime = wallJumpMinJumpTime;
+        rigidbody.linearVelocity = jumpDir * wallJumpForce;
+
+        onWallJumped?.Invoke(jumpDir);
+    }
+
     protected virtual bool CanJump()
     {
         return movementManager.isGrounded && movementManager.movementState == MovementManager.MovementState.Default && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
+    }
+
+    protected virtual bool CanWallJump()
+    {
+        return movementManager.movementState == MovementManager.MovementState.OnWall && movementManager.curWall != null && !jumping && curMinJumpTime <= 0f && curJumpCooldown <= 0f;
     }
 
     public void StopJump()
@@ -83,23 +111,35 @@ public class Jump : MonoBehaviour
         if (rigidbody.linearVelocityY > 0f) rigidbody.linearVelocityY = rigidbody.linearVelocityY * stopJumpMultiplier;
         jumping = false;
 
-        onJumpEnded?.Invoke();
+        onJumpStopped?.Invoke();
     }
 
     protected virtual void OnGrounded()
     {
-        if(fallingAfterTheJump) curJumpCooldown = jumpCooldown;
+        OnLanded();
+    }
+
+    protected virtual void OnGotOnTheWall(Collider2D wall)
+    {
+        OnLanded();
+    }
+
+    private void OnLanded()
+    {
+        if (fallingAfterTheJump) curJumpCooldown = jumpCooldown;
         fallingAfterTheJump = false;
     }
 
     protected virtual void OnEnable()
     {
         movementManager.onGrounded += OnGrounded;
+        movementManager.onGotOnTheWall += OnGotOnTheWall;
     }
 
     protected virtual void OnDisable()
     {
         movementManager.onGrounded -= OnGrounded;
+        movementManager.onGotOnTheWall -= OnGotOnTheWall;
     }
 }
 
