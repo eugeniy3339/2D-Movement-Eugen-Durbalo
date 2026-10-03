@@ -283,6 +283,7 @@ public class MovementManager : MonoBehaviour
         SetLinearDamping();
         if(movementState == MovementState.OnWall)
             movementState = MovementState.Default;
+        OnGotOfWall?.Invoke();
     }
 
 
@@ -319,7 +320,7 @@ public class MovementManager : MonoBehaviour
         movementState = MovementState.Jumping;
     }
 
-    private void OnWallJump()
+    private void OnWallJump(Vector2 jumpDir)
     {
         linearDamping = airFriction;
         canChangeLinearDamping = false;
@@ -367,8 +368,8 @@ public class MovementManager : MonoBehaviour
     private void OnEnable()
     {
         jump.onJumped += OnJump;
-        jump.onWallJump += OnWallJump;
-        jump.onJumpEnded += OnJumpEnded;
+        jump.onWallJumped += OnWallJump;
+        jump.onJumpStopped += OnJumpEnded;
         run.onStartedRunning += OnStartedRunning;
         run.onStoppedRunning += OnStoppedRunning;
         dash.onDashStart += OnDashStart;
@@ -381,8 +382,8 @@ public class MovementManager : MonoBehaviour
     private void OnDisable()
     {
         jump.onJumped -= OnJump;
-        jump.onWallJump -= OnWallJump;
-        jump.onJumpEnded -= OnJumpEnded;
+        jump.onWallJumped -= OnWallJump;
+        jump.onJumpStopped -= OnJumpEnded;
         run.onStartedRunning -= OnStartedRunning;
         run.onStoppedRunning -= OnStoppedRunning;
         dash.onDashStart -= OnDashStart;

@@ -22,9 +22,9 @@ public class Jump : MonoBehaviour
     protected bool jumping;
     protected bool fallingAfterTheJump;
 
-    public Action onJumped;
-    public Action onWallJump;
-    public Action onJumpEnded;
+    public event Action onJumped;
+    public event Action<Vector2> onWallJumped;
+    public event Action onJumpStopped;
 
     private void Awake()
     {
@@ -85,14 +85,14 @@ public class Jump : MonoBehaviour
     private void WallJump()
     {
         float xMultiplier = movementManager.curWall != null ? NormalizedFloat.NormalizeFloat(transform.position.x - movementManager.curWall.transform.position.x) : 1f;
-        Vector2 jumpDir = new Vector2(wallJumpDirection.x * xMultiplier, wallJumpDirection.y);
+        Vector2 jumpDir = new Vector2(wallJumpDirection.x * xMultiplier, wallJumpDirection.y).normalized;
 
         jumping = true;
         fallingAfterTheJump = true;
         curMinJumpTime = wallJumpMinJumpTime;
-        rigidbody.linearVelocity = jumpDir.normalized * wallJumpForce;
+        rigidbody.linearVelocity = jumpDir * wallJumpForce;
 
-        onWallJump?.Invoke();
+        onWallJumped?.Invoke(jumpDir);
     }
 
     protected virtual bool CanJump()
@@ -111,7 +111,7 @@ public class Jump : MonoBehaviour
         if (rigidbody.linearVelocityY > 0f) rigidbody.linearVelocityY = rigidbody.linearVelocityY * stopJumpMultiplier;
         jumping = false;
 
-        onJumpEnded?.Invoke();
+        onJumpStopped?.Invoke();
     }
 
     protected virtual void OnGrounded()

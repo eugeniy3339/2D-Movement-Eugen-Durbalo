@@ -12,38 +12,63 @@ public class CharacterVisualsHandler : MonoBehaviour
     private Dash dash;
 
     private float moveDir;
-
+    private float _lD;
+    private float lookDir
+    {
+        get { return _lD; }
+        set
+        {
+            _lD = value;
+            if(value != 0)
+            {
+                flipped = value < 0f;
+            }
+        }
+    }
     private bool _f;
     private bool flipped
     {
-        get
-        {
-            return _f;
-        }
+        get { return _f; }
         set
         {
-            if (dashing) return;
             _f = value;
             spriteRenderer.flipX = value;
         }
     }
 
-    private bool running;
+    private bool _iG;
+    private bool isGrounded
+    {
+        get { return _iG; }
+        set
+        {
+            _iG = value;
+            animator.SetBool("IsGrounded", value);
+        }
+    }
     private bool _d;
     private bool dashing
     {
-        get
-        {
-            return _d;
-        }
+        get { return _d; }
         set
         {
             _d = value;
             animator.SetBool("IsDashing", value);
-            if(!value)
-                SetMoveDir(moveDir);
         }
     }
+    private bool _oW;
+    private bool onWall
+    {
+        get { return _oW; }
+        set
+        {
+            _oW = value;
+            animator.SetBool("IsOnWall", value);
+        }
+    }
+    private bool jumpingFromTheWall;
+
+    private bool running;
 
     private void Awake()
     {
@@ -57,43 +82,6 @@ public class CharacterVisualsHandler : MonoBehaviour
         dash = GetComponent<Dash>();
     }
 
-    private void OnGrounded()
-    {
-        animator.SetBool("IsGrounded", true);
-    }
-
-    private void OnUngrounded()
-    {
-        animator.SetBool("IsGrounded", false);
-    }
-
-    private void OnJumped()
-    {
-        animator.Play("Jump");
-    }
-
-    private void OnStoppedJump()
-    {
-        if (!dashing)
-            animator.Play("StartFalling");
-    }
-
-    private void OnStartedRunning()
-    {
-        SetRun(true);
-    }
-
-    private void OnStoppedRunning()
-    {
-        SetRun(false);
-    }
-
-    private void SetRun(bool run)
-    {
-        running = run;
-        SetMoveDir(moveDir);
-    }
-
     private void OnMoveDirChanged(float moveDir)
     {
         SetMoveDir(moveDir);
@@ -102,45 +90,114 @@ public class CharacterVisualsHandler : MonoBehaviour
     private void SetMoveDir(float moveDir)
     {
         this.moveDir = moveDir;
-        animator.SetFloat("x", moveDir == 0 ? 0f : (running ? 1f : 0.5f));
-        if (moveDir == 0f) return;
-        flipped = moveDir < 0f;
+        animator.SetFloat("x", moveDir == 0f ? 0f : (running ? 1f : 0.5f));
+        if (!dashing && !onWall && !jumpingFromTheWall)
+            SetLookDir(moveDir);
+    }
+
+    private void SetLookDir(float lookDir)
+    {
+        this.lookDir = lookDir;
+    }
+
+    private void OnGrounded()
+    {
+        isGrounded = true;
+    }
+
+    private void OnUngrounded()
+    {
+        isGrounded = false;
+    }
+
+    private void OnJumped()
+    {
+        animator.Play("Jump");
+    }
+
+    private void OnWallJumped(Vector2 jumpDir)
+    {
+        jumpingFromTheWall = true;
+        animator.Play("Jump");
+        SetLookDir(jumpDir.x);
+    }
+
+    private void OnJumpStopped()
+    {
+        jumpingFromTheWall = false;
+        if(!onWall)
+            animator.Play("StartFalling");
+        SetMoveDir(moveDir);
+    }
+
+    private void OnGotOnTheWall(Collider2D wall)
+    {
+        onWall = true;
+        animator.Play("OnWall");
+        float dirFromTheWall = transform.position.x - wall.transform.position.x;
+        SetLookDir(dirFromTheWall);
+    }
+
+    private void OnGotOfWall()
+    {
+        onWall = false;
+        SetMoveDir(moveDir);
     }
 
     private void OnDashStart()
     {
         dashing = true;
         animator.Play("Dash");
+        SetLookDir(moveDir);
     }
 
     private void OnDashEnd()
     {
         dashing = false;
+        SetMoveDir(moveDir);
+    }
+
+    private void OnStartedRunning()
+    {
+        running = true;
+        SetMoveDir(moveDir);
+    }
+
+    private void OnStoppedRunning()
+    {
+        running = false;
+        SetMoveDir(moveDir);
     }
 
     private void OnEnable()
     {
+        movement.onMoveDirChanged += OnMoveDirChanged;
         movementManager.onGrounded += OnGrounded;
         movementManager.onUngrounded += OnUngrounded;
         jump.onJumped += OnJumped;
-        jump.onJumpEnded += OnStoppedJump;
-        movement.onMoveDirChanged += OnMoveDirChanged;
-        run.onStartedRunning += OnStartedRunning;
-        run.onStoppedRunning += OnStoppedRunning;
+        jump.onWallJumped += OnWallJumped;
+        jump.onJumpStopped += OnJumpStopped;
+        movementManager.onGotOnTheWall += OnGotOnTheWall;
+        movementManager.OnGotOfWall += OnGotOfWall;
         dash.onDashStart += OnDashStart;
         dash.onDashEnd += OnDashEnd;
+        run.onStartedRunning += OnStartedRunning;
+        run.onStoppedRunning += OnStoppedRunning;
     }
 
     private void OnDisable()
     {
+        movement.onMoveDirChanged -= OnMoveDirChanged;
         movementManager.onGrounded -= OnGrounded;
         movementManager.onUngrounded -= OnUngrounded;
         jump.onJumped -= OnJumped;
-        jump.onJumpEnded -= OnStoppedJump;
-        movement.onMoveDirChanged -= OnMoveDirChanged;
-        run.onStartedRunning -= OnStartedRunning;
-        run.onStoppedRunning -= OnStoppedRunning;
+        jump.onWallJumped -= OnWallJumped;
+        jump.onJumpStopped -= OnJumpStopped;
+        movementManager.onGotOnTheWall -= OnGotOnTheWall;
+        movementManager.OnGotOfWall -= OnGotOfWall;
         dash.onDashStart -= OnDashStart;
         dash.onDashEnd -= OnDashEnd;
+        run.onStartedRunning -= OnStartedRunning;
+        run.onStoppedRunning -= OnStoppedRunning;
     }
 }
