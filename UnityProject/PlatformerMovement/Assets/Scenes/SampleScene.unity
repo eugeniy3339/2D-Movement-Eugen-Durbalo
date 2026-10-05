@@ -793,7 +793,7 @@ MonoBehaviour:
   jumpCooldown: 0
   stopJumpMultiplier: 0.5
   wallJumpMinJumpTime: 0.1
-  wallJumpDirection: {x: 1, y: 4}
+  wallJumpDirection: {x: 1, y: 2}
   _wallJumpForce: 20
   kayoteTime: 0.1
   inputFuncTime: 0.1
@@ -809,9 +809,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 453e590bc3b329742be3c42ce25e8170, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  _normalSpeed: 7
-  airMultiplier: 1
-  canMoveWhileWallJump: 0
+  _normalSpeed: 5
+  airMultiplier: 0.8
+  canMoveWhileWallJump: 1
   moveDir: {x: 0, y: 0}
 --- !u!114 &1439890328
 MonoBehaviour:

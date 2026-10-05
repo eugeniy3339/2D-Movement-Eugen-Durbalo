@@ -125,15 +125,17 @@ public class CharacterVisualsHandler : MonoBehaviour
     private void OnJumpStopped()
     {
         jumpingFromTheWall = false;
-        if(!onWall)
+        if (!onWall)
             animator.Play("StartFalling");
+        else
+            OnGotOnTheWall(movementManager.curWall);
         SetMoveDir(moveDir);
     }
 
     private void OnGotOnTheWall(Collider2D wall)
     {
-        if (jumpingFromTheWall) return;
         onWall = true;
+        if (jumpingFromTheWall) return;
         animator.Play("OnWall");
         float dirFromTheWall = transform.position.x - wall.transform.position.x;
         SetLookDir(dirFromTheWall);
