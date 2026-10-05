@@ -1,9 +1,11 @@
+using System.Collections;
 using UnityEngine;
 
 public class CharacterVisualsHandler : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private Rigidbody2D rigidbody;
 
     private MovementManager movementManager;
     private Movement movement;
@@ -70,10 +72,13 @@ public class CharacterVisualsHandler : MonoBehaviour
 
     private bool running;
 
+    private Coroutine curWallJumpLookDirHandleCoro;
+
     private void Awake()
     {
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        rigidbody = GetComponent<Rigidbody2D>();
 
         movementManager = GetComponent<MovementManager>();
         movement = GetComponent<Movement>();
@@ -120,20 +125,36 @@ public class CharacterVisualsHandler : MonoBehaviour
         jumpingFromTheWall = true;
         animator.Play("Jump");
         SetLookDir(jumpDir.x);
+        if (curWallJumpLookDirHandleCoro != null)
+            StopCoroutine(curWallJumpLookDirHandleCoro);
+        curWallJumpLookDirHandleCoro = StartCoroutine(WallJumpLookDirHandleCoro());
     }
 
     private void OnJumpStopped()
     {
         jumpingFromTheWall = false;
+        if (curWallJumpLookDirHandleCoro != null)
+            StopCoroutine(curWallJumpLookDirHandleCoro);
         if (!onWall)
             animator.Play("StartFalling");
-        else
-            OnGotOnTheWall(movementManager.curWall);
+        else if(movementManager.curWall != null)
+            OnGotOnWall();
         SetMoveDir(moveDir);
     }
 
-    private void OnGotOnTheWall(Collider2D wall)
+    private IEnumerator WallJumpLookDirHandleCoro()
     {
+        while (true)
+        {
+            SetLookDir(rigidbody.linearVelocityX);
+            yield return new WaitForSeconds(0f);
+        }
+    }
+
+    private void OnGotOnWall()
+    {
+        Collider2D wall = movementManager.curWall;
+        if (wall == null) return;
         onWall = true;
         if (jumpingFromTheWall) return;
         animator.Play("OnWall");
@@ -180,7 +201,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped += OnJumped;
         jump.onWallJumped += OnWallJumped;
         jump.onJumpStopped += OnJumpStopped;
-        movementManager.onGotOnTheWall += OnGotOnTheWall;
+        movementManager.onGotOnWall += OnGotOnWall;
         movementManager.OnGotOfWall += OnGotOfWall;
         dash.onDashStart += OnDashStart;
         dash.onDashEnd += OnDashEnd;
@@ -196,7 +217,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped -= OnJumped;
         jump.onWallJumped -= OnWallJumped;
         jump.onJumpStopped -= OnJumpStopped;
-        movementManager.onGotOnTheWall -= OnGotOnTheWall;
+        movementManager.onGotOnWall -= OnGotOnWall;
         movementManager.OnGotOfWall -= OnGotOfWall;
         dash.onDashStart -= OnDashStart;
         dash.onDashEnd -= OnDashEnd;

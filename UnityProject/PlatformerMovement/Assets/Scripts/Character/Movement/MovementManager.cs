@@ -88,6 +88,7 @@ public class MovementManager : MonoBehaviour
     public event Action onGotOnSlope;
     public event Action onGotOfSlope;
     public event Action<Collider2D> onGotOnTheWall;
+    public event Action onGotOnWall;
     public event Action OnGotOfWall;
 
     private void Awake()
@@ -266,6 +267,7 @@ public class MovementManager : MonoBehaviour
         linearDamping = wallFriction;
         movementState = MovementState.OnWall;
         onGotOnTheWall?.Invoke(collider);
+        onGotOnWall?.Invoke();
     }
 
     private void RemoveWall(Collision2D collision)
