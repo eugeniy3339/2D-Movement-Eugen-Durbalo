@@ -199,7 +199,7 @@ public class MovementManager : MonoBehaviour
     {
         if (Mathf.Abs(rigidbody.linearVelocityX) > curSpeed)
         {
-            rigidbody.linearVelocityX = NormalizedFloat.NormalizeFloat(rigidbody.linearVelocityX);
+            rigidbody.linearVelocityX = NormalizedFloat.NormalizeFloat(rigidbody.linearVelocityX) * curSpeed;
         }
     }
 
