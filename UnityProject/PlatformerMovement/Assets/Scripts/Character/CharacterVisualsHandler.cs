@@ -1,9 +1,11 @@
+using System.Collections;
 using UnityEngine;
 
 public class CharacterVisualsHandler : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
     private Animator animator;
+    private Rigidbody2D rigidbody;
 
     private MovementManager movementManager;
     private Movement movement;
@@ -70,10 +72,13 @@ public class CharacterVisualsHandler : MonoBehaviour
 
     private bool running;
 
+    private Coroutine curWallJumpLookDirHandleCoro;
+
     private void Awake()
     {
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         animator = GetComponent<Animator>();
+        rigidbody = GetComponent<Rigidbody2D>();
 
         movementManager = GetComponent<MovementManager>();
         movement = GetComponent<Movement>();
@@ -120,11 +125,16 @@ public class CharacterVisualsHandler : MonoBehaviour
         jumpingFromTheWall = true;
         animator.Play("Jump");
         SetLookDir(jumpDir.x);
+        if (curWallJumpLookDirHandleCoro != null)
+            StopCoroutine(curWallJumpLookDirHandleCoro);
+        curWallJumpLookDirHandleCoro = StartCoroutine(WallJumpLookDirHandleCoro());
     }
 
     private void OnJumpStopped()
     {
         jumpingFromTheWall = false;
+        if (curWallJumpLookDirHandleCoro != null)
+            StopCoroutine(curWallJumpLookDirHandleCoro);
         if (!onWall)
             animator.Play("StartFalling");
         else
@@ -132,8 +142,18 @@ public class CharacterVisualsHandler : MonoBehaviour
         SetMoveDir(moveDir);
     }
 
+    private IEnumerator WallJumpLookDirHandleCoro()
+    {
+        while (true)
+        {
+            SetLookDir(rigidbody.linearVelocityX);
+            yield return new WaitForSeconds(0f);
+        }
+    }
+
     private void OnGotOnTheWall(Collider2D wall)
     {
+        if (wall == null) return;
         onWall = true;
         if (jumpingFromTheWall) return;
         animator.Play("OnWall");
