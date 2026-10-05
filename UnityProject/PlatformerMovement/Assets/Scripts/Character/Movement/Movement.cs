@@ -9,6 +9,7 @@ public class Movement : MonoBehaviour
     [SerializeField] private float _normalSpeed = 3f;
     public float normalSpeed { get { return _normalSpeed; } }
     [SerializeField] private float airMultiplier = 0.8f;
+    [SerializeField] private bool canMoveWhileWallJump = true;
 
     private float lastDir;
 
@@ -22,8 +23,8 @@ public class Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(movementManager.movementState != MovementManager.MovementState.Dashing && movementManager.movementState != MovementManager.MovementState.JumpingOfWall)
-            Move();
+        if (movementManager.movementState == MovementManager.MovementState.Dashing || (!canMoveWhileWallJump && movementManager.movementState == MovementManager.MovementState.JumpingOfWall)) return;
+        Move();
     }
 
     protected virtual void Move()

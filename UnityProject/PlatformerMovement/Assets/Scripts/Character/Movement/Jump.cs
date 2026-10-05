@@ -17,7 +17,8 @@ public class Jump : MonoBehaviour
 
     [SerializeField] private float wallJumpMinJumpTime = 0.1f;
     [SerializeField, Tooltip("Wall jump right direction")] private Vector2 wallJumpDirection = Vector2.one;
-    [SerializeField] private float wallJumpForce = 10f;
+    [SerializeField] private float _wallJumpForce = 10f;
+    public float wallJumpForce { get { return _wallJumpForce; } }
 
     protected bool jumping;
     protected bool fallingAfterTheJump;
