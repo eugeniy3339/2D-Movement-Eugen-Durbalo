@@ -10,12 +10,18 @@ UA:
 Отож ви можете легко додавати нові модулі під свої потреби.
 
 Ви можете знайти префаб гравця у теці Prefabs, 
-або створити нового. Для цього створіть новий об'єкт, наприклад капсулу. До цього об'єкту додайте компоненти Rigidbody, Player, PlayerInputsManager та скрипт руху (PlatformerMovement/TopDownMovement в залежності від вашої потреби), або оберіть тип мувементу в компоненті Player.
-Тепер у вас на сцені є новий гравець. Ви можете додавати до нього різні модулі як Dash, Jump (не працює з Top Down рухом), та Run (Це поки-що усі модулі присутні в проекті).
+або створити нового. Для цього створіть новий об'єкт, наприклад капсулу. До цього об'єкту додайте компоненти Rigidbody, та MovementManager (Обов'язковий компонент, без нього майже усі компоненти працювати не будуть).
+Створіть дочерній об'єкт та задайте йому позицію там де у гравця знаходяться ноги (бажано там, де у нього закінчується колайдер) та оберіть цей об'єкт як feet pos у Movement Manager компоненті. 
+Створіть шар для землі (або можете використовувати вже існуючий шар). Та оберіть його як шар землі у Movement Manager.
+Тепер у вас на сцені є новий гравець. Ви можете додавати до нього різні модулі як Dash, Jump, та Run.
 
-Також ви можете налаштовувати усілякі змінні під свої потреби, наприклад швидкість, висота стрибку, максимальний кут по котрому може ходити гравець, висоа гравця (потрібно для визначення довжини рей касту)...
+Щоб додати гравцеві інпути просто додайте йому компонент Player Inputs Manager.
+Графіку гравця контролює компонент Character Visuals Handler.
+У проекті вже є свій передстворенний Animator Controller, ви можете або замінити у ньому анімації, або створити Animator Override Controller (рекомендований спосіб) та замінити анімації вже в ньому.
 
 Також ви можете спокійно переписувати скрипти під себе, та розповсюджувати цей проект (https://en.wikipedia.org/wiki/MIT_License).
+
+
 
 EN:
 
@@ -26,13 +32,19 @@ This project features a fully modular character movement system,
 so you can easily add new modules tailored to your needs.
 
 You can find a player prefab in the Prefabs folder,
-or you can create your own. To do this, create a new object (e.g., a capsule) and add the following components: Rigidbody, Player, PlayerInputsManager, and the movement script (PlatformerMovement or TopDownMovement, depending on your needs).
-Alternatively, you can simply choose the movement type in the Player component.
-Now you have a working player in your scene. You can add various modules to it, such as Dash, Jump (not compatible with Top Down movement), and Run (currently, these are all the modules included in the project).
+or you can create your own. To do this, create a new object (e.g., a capsule) and add the following components: Rigidbody, Player Movement Manager (the needed component, without it some components may not work).
+Create new Empty child component and place it where player's feet are placed (better to be on the end of collider) and choose these object as feet pos in Movement Manager component.
+Create a new Ground Layer (or use existing one) and chose it as a ground layer in Movement Manager.
+Now you have a working player in your scene. You can add various modules to it, such as Dash, Jump, and Run.
 
-You can also customize various variables to suit your needs—for example, movement speed, jump height, the maximum slope angle the player can walk on, player height (used for raycast length), and more.
+To add inputs to player just add Player Inputs Manager component to it.
+Player visuals are being controlled by Character Visuals Handler.
+There is an existing Animator Controller in the project, you can change its animations, or create a new Animator Override Controller (recomended way) and change them there.
 
 Feel free to modify the scripts and distribute this project as you wish — https://en.wikipedia.org/wiki/MIT_License
 
+
+
 Credits: 
+Eugen Durbalo - Developement
 2D Pixel Art Character Template Asset Pack - https://zegley.itch.io/2d-platformermetroidvania-asset-pack

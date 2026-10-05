@@ -371,13 +371,23 @@ public class MovementManager : MonoBehaviour
 
     private void OnEnable()
     {
-        jump.onJumped += OnJump;
-        jump.onWallJumped += OnWallJump;
-        jump.onJumpStopped += OnJumpEnded;
-        run.onStartedRunning += OnStartedRunning;
-        run.onStoppedRunning += OnStoppedRunning;
-        dash.onDashStart += OnDashStart;
-        dash.onDashEnd += OnDashEnd;
+        if (jump != null)
+        {
+            jump.onJumped += OnJump;
+            jump.onWallJumped += OnWallJump;
+            jump.onJumpStopped += OnJumpEnded;
+        }
+        if(run != null)
+        {
+            run.onStartedRunning += OnStartedRunning;
+            run.onStoppedRunning += OnStoppedRunning;
+        }
+        if(dash != null)
+        {
+            dash.onDashStart += OnDashStart;
+            dash.onDashEnd += OnDashEnd;
+        }
+
         onMovementStateChanged += OnMovementStateChanged;
         onUngrounded += OnUngrounded;
         onGrounded += OnGrounded;
@@ -385,13 +395,23 @@ public class MovementManager : MonoBehaviour
 
     private void OnDisable()
     {
-        jump.onJumped -= OnJump;
-        jump.onWallJumped -= OnWallJump;
-        jump.onJumpStopped -= OnJumpEnded;
-        run.onStartedRunning -= OnStartedRunning;
-        run.onStoppedRunning -= OnStoppedRunning;
-        dash.onDashStart -= OnDashStart;
-        dash.onDashEnd -= OnDashEnd;
+        if (jump != null)
+        {
+            jump.onJumped -= OnJump;
+            jump.onWallJumped -= OnWallJump;
+            jump.onJumpStopped -= OnJumpEnded;
+        }
+        if(run != null)
+        {
+            run.onStartedRunning -= OnStartedRunning;
+            run.onStoppedRunning -= OnStoppedRunning;
+        }
+        if(dash != null)
+        {
+            dash.onDashStart -= OnDashStart;
+            dash.onDashEnd -= OnDashEnd;
+        }
+
         onMovementStateChanged -= OnMovementStateChanged;
         onUngrounded -= OnUngrounded;
         onGrounded -= OnGrounded;
