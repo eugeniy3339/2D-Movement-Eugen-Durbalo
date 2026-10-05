@@ -137,8 +137,8 @@ public class CharacterVisualsHandler : MonoBehaviour
             StopCoroutine(curWallJumpLookDirHandleCoro);
         if (!onWall)
             animator.Play("StartFalling");
-        else
-            OnGotOnTheWall(movementManager.curWall);
+        else if(movementManager.curWall != null)
+            OnGotOnWall();
         SetMoveDir(moveDir);
     }
 
@@ -151,8 +151,9 @@ public class CharacterVisualsHandler : MonoBehaviour
         }
     }
 
-    private void OnGotOnTheWall(Collider2D wall)
+    private void OnGotOnWall()
     {
+        Collider2D wall = movementManager.curWall;
         if (wall == null) return;
         onWall = true;
         if (jumpingFromTheWall) return;
@@ -200,7 +201,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped += OnJumped;
         jump.onWallJumped += OnWallJumped;
         jump.onJumpStopped += OnJumpStopped;
-        movementManager.onGotOnTheWall += OnGotOnTheWall;
+        movementManager.onGotOnWall += OnGotOnWall;
         movementManager.OnGotOfWall += OnGotOfWall;
         dash.onDashStart += OnDashStart;
         dash.onDashEnd += OnDashEnd;
@@ -216,7 +217,7 @@ public class CharacterVisualsHandler : MonoBehaviour
         jump.onJumped -= OnJumped;
         jump.onWallJumped -= OnWallJumped;
         jump.onJumpStopped -= OnJumpStopped;
-        movementManager.onGotOnTheWall -= OnGotOnTheWall;
+        movementManager.onGotOnWall -= OnGotOnWall;
         movementManager.OnGotOfWall -= OnGotOfWall;
         dash.onDashStart -= OnDashStart;
         dash.onDashEnd -= OnDashEnd;
