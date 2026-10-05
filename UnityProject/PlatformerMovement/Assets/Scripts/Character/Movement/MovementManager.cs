@@ -172,8 +172,10 @@ public class MovementManager : MonoBehaviour
 
     private bool OnSlope(RaycastHit2D hit)
     {
+        if (!hit) return false;
+             
         float angle = Vector2.Angle(Vector2.up, hit.normal);
-        return angle > 0 && angle < maxSlopeAngle;
+        return angle > 0f && angle < maxSlopeAngle;
     }
 
     private void SpeedControll()

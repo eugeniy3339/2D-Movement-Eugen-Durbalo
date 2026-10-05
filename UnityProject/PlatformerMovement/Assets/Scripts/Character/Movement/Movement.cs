@@ -9,7 +9,7 @@ public class Movement : MonoBehaviour
     [SerializeField] private float _normalSpeed = 3f;
     public float normalSpeed { get { return _normalSpeed; } }
     [SerializeField] private float airMultiplier = 0.8f;
-    [SerializeField] private bool canMoveWhileWallJump = true;
+    [SerializeField] private bool canMoveWhileWallJump = false;
 
     private float lastDir;
 
