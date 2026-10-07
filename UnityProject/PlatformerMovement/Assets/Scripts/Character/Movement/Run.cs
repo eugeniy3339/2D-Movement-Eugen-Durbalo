@@ -11,6 +11,11 @@ public class Run : MonoBehaviour
     public event Action onStartedRunning;
     public event Action onStoppedRunning;
 
+    public void run()
+    {
+        run(!running);
+    }
+
     public void run(bool start)
     {
         running = start;
