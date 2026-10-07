@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e6cb572169e8014468e1b79731f80de9
+guid: c7afeae8d871d37428b0d538c39fe2db
 TextureImporter:
   internalIDToNameTable:
   - first:
@@ -160,7 +160,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: run_up_0
+      name: walk_up_0
       rect:
         serializedVersion: 2
         x: 0
@@ -173,16 +173,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 81928acd73027d2e0800000000000000
-      internalID: -2101175276847748840
+      spriteID: cb75ba99b0034b74e86def79b50ebe06
+      internalID: -340617462
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_1
+      name: walk_up_1
       rect:
         serializedVersion: 2
         x: 100
@@ -195,16 +195,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: b0a40f7cdf5842f20800000000000000
-      internalID: 3396987343971830283
+      spriteID: 1322e2b865b9f9d45ad81fbb5b098f80
+      internalID: -1709055817
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_2
+      name: walk_up_2
       rect:
         serializedVersion: 2
         x: 200
@@ -217,16 +217,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 49d3844a9af11e730800000000000000
-      internalID: 4026534355312065940
+      spriteID: ff13a3915e4eef04fbcf1bfb978c7844
+      internalID: -203938988
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_3
+      name: walk_up_3
       rect:
         serializedVersion: 2
         x: 300
@@ -239,16 +239,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: afbe15e2127ecf330800000000000000
-      internalID: 3746123119762467834
+      spriteID: bee5e357b2d1e3340b070a5a2af704c5
+      internalID: 1355957334
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_4
+      name: walk_up_4
       rect:
         serializedVersion: 2
         x: 400
@@ -261,16 +261,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: ec0e79b458c1d5990800000000000000
-      internalID: -7395723654248013618
+      spriteID: 0b2c5f923c4b63a4aa7bbac88d94109c
+      internalID: -134736191
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_5
+      name: walk_up_5
       rect:
         serializedVersion: 2
         x: 500
@@ -283,16 +283,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 8aacececa60ec1060800000000000000
-      internalID: 6925657076329794216
+      spriteID: cb9155a4b04434b4f82f80fe7212a1de
+      internalID: 754588387
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_6
+      name: walk_up_6
       rect:
         serializedVersion: 2
         x: 600
@@ -305,16 +305,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 515642c34125249f0800000000000000
-      internalID: -485735562940750571
+      spriteID: 2f147f4ccf2891944abd1b794315160a
+      internalID: 1174639846
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: run_up_7
+      name: walk_up_7
       rect:
         serializedVersion: 2
         x: 700
@@ -327,10 +327,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 01db3d14942b9bf10800000000000000
-      internalID: 2286054313573989648
+      spriteID: 02d9896992f773344810d91185a7c03b
+      internalID: 1607939045
       vertices: []
       indices: 
       edges: []
@@ -349,14 +349,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      run_up_0: -2101175276847748840
-      run_up_1: 3396987343971830283
-      run_up_2: 4026534355312065940
-      run_up_3: 3746123119762467834
-      run_up_4: -7395723654248013618
-      run_up_5: 6925657076329794216
-      run_up_6: -485735562940750571
-      run_up_7: 2286054313573989648
+      walk_up_0: -340617462
+      walk_up_1: -1709055817
+      walk_up_2: -203938988
+      walk_up_3: 1355957334
+      walk_up_4: -134736191
+      walk_up_5: 754588387
+      walk_up_6: 1174639846
+      walk_up_7: 1607939045
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

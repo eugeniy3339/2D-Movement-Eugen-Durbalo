@@ -8,6 +8,7 @@ public class CharacterVisualsHandler : MonoBehaviour
 
     private Movement movement;
     private Dash dash;
+    private Run run;
 
     private Vector2 moveDir;
 
@@ -28,6 +29,7 @@ public class CharacterVisualsHandler : MonoBehaviour
 
         movement = GetComponent<Movement>();
         dash = GetComponent<Dash>();
+        run = GetComponent<Run>();
     }
 
 
@@ -62,6 +64,16 @@ public class CharacterVisualsHandler : MonoBehaviour
         SetLookDir(moveDir);
     }
 
+    private void OnStartedRunning()
+    {
+        animator.SetBool("IsRunning", true);
+    }
+
+    private void OnStoppedRunning()
+    {
+        animator.SetBool("IsRunning", false);
+    }
+
 
 
     private void OnEnable()
@@ -75,6 +87,11 @@ public class CharacterVisualsHandler : MonoBehaviour
             dash.onDashStarted += OnDashStarted;
             dash.onDashEnded += OnDashEnded;
         }
+        if (run != null)
+        {
+            run.onStartedRunning += OnStartedRunning;
+            run.onStoppedRunning += OnStoppedRunning;
+        }
     }
 
     private void OnDisable()
@@ -87,6 +104,11 @@ public class CharacterVisualsHandler : MonoBehaviour
         {
             dash.onDashStarted -= OnDashStarted;
             dash.onDashEnded -= OnDashEnded;
+        }
+        if(run != null)
+        {
+            run.onStartedRunning -= OnStartedRunning;
+            run.onStoppedRunning -= OnStoppedRunning;
         }
     }
 }

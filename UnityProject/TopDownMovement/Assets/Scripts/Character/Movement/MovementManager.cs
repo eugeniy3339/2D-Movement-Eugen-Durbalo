@@ -7,6 +7,7 @@ public class MovementManager : MonoBehaviour
 
     private Movement movement;
     private Dash dash;
+    private Run run;
 
     public float curSpeed { get; private set; }
 
@@ -40,8 +41,9 @@ public class MovementManager : MonoBehaviour
 
         movement = GetComponent<Movement>();
         dash = GetComponent<Dash>();
+        run = GetComponent<Run>();
 
-        curSpeed = movement.normalSpeed;
+        curSpeed = movement != null ? movement.normalSpeed : 0f;
 
         canChangeLinearDamping = true;
         linearDamping = defaultLinearDamping;
@@ -76,6 +78,16 @@ public class MovementManager : MonoBehaviour
         linearDamping = defaultLinearDamping;
     }
 
+    private void OnStartedRunning()
+    {
+        curSpeed = run.runSpeed;
+    }
+
+    private void OnStoppedRunning()
+    {
+        curSpeed = movement != null ? movement.normalSpeed : 0f;
+    }
+
 
 
     private void OnEnable()
@@ -85,6 +97,11 @@ public class MovementManager : MonoBehaviour
             dash.onDashStarted += OnDashStarted;
             dash.onDashEnded += OnDashEnded;
         }
+        if (run != null)
+        {
+            run.onStartedRunning += OnStartedRunning;
+            run.onStoppedRunning += OnStoppedRunning;
+        }
     }
 
     private void OnDisable()
@@ -93,6 +110,11 @@ public class MovementManager : MonoBehaviour
         {
             dash.onDashStarted -= OnDashStarted;
             dash.onDashEnded -= OnDashEnded;
+        }
+        if(run != null)
+        {
+            run.onStartedRunning -= OnStartedRunning;
+            run.onStoppedRunning -= OnStoppedRunning;
         }
     }
 
