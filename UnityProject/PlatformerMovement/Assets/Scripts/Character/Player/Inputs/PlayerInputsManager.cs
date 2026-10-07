@@ -11,7 +11,6 @@ public class PlayerInputsManager : MonoBehaviour
     private PlayerInputs playerInputs;
 
     private Vector2 lastMoveInputs;
-    private bool enabledRun = false;
 
     private void Awake()
     {
@@ -59,8 +58,7 @@ public class PlayerInputsManager : MonoBehaviour
         if (run == null) return;
         if (!context.started) return;
 
-        enabledRun = !enabledRun;
-        run.run(enabledRun);
+        run.run();
     }
 
     public void OnDash(InputAction.CallbackContext context)
