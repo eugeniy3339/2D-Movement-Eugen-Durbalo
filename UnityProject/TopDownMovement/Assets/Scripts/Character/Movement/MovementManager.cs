@@ -18,6 +18,20 @@ public class MovementManager : MonoBehaviour
         } 
     }
 
+    [SerializeField] private float defaultLinearDamping = 15f;
+    private bool canChangeLinearDamping = true;
+    private float _lD;
+    private float linearDamping
+    {
+        get { return _lD; }
+        set
+        {
+            if (!canChangeLinearDamping) return;
+            _lD = value;
+            rigidbody.linearDamping = value;
+        }
+    }
+
     public event Action<MovementState> onMovementStateChanged;
 
     private void Awake()
@@ -28,6 +42,9 @@ public class MovementManager : MonoBehaviour
         dash = GetComponent<Dash>();
 
         curSpeed = movement.normalSpeed;
+
+        canChangeLinearDamping = true;
+        linearDamping = defaultLinearDamping;
     }
 
     private void Update()
@@ -48,11 +65,15 @@ public class MovementManager : MonoBehaviour
     private void OnDashStarted(Vector2 direction)
     {
         movementState = MovementState.Dashing;
+        linearDamping = 0f;
+        canChangeLinearDamping = false;
     }
 
     private void OnDashEnded()
     {
         movementState = MovementState.Default;
+        canChangeLinearDamping = true;
+        linearDamping = defaultLinearDamping;
     }
 
 
