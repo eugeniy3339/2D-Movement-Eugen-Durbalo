@@ -7,6 +7,7 @@ public class MovementManager : MonoBehaviour
 
     private Movement movement;
     private Dash dash;
+    private Run run;
 
     public float curSpeed { get; private set; }
 
@@ -18,6 +19,20 @@ public class MovementManager : MonoBehaviour
         } 
     }
 
+    [SerializeField] private float defaultLinearDamping = 15f;
+    private bool canChangeLinearDamping = true;
+    private float _lD;
+    private float linearDamping
+    {
+        get { return _lD; }
+        set
+        {
+            if (!canChangeLinearDamping) return;
+            _lD = value;
+            rigidbody.linearDamping = value;
+        }
+    }
+
     public event Action<MovementState> onMovementStateChanged;
 
     private void Awake()
@@ -26,8 +41,12 @@ public class MovementManager : MonoBehaviour
 
         movement = GetComponent<Movement>();
         dash = GetComponent<Dash>();
+        run = GetComponent<Run>();
 
-        curSpeed = movement.normalSpeed;
+        curSpeed = movement != null ? movement.normalSpeed : 0f;
+
+        canChangeLinearDamping = true;
+        linearDamping = defaultLinearDamping;
     }
 
     private void Update()
@@ -48,11 +67,25 @@ public class MovementManager : MonoBehaviour
     private void OnDashStarted(Vector2 direction)
     {
         movementState = MovementState.Dashing;
+        linearDamping = 0f;
+        canChangeLinearDamping = false;
     }
 
     private void OnDashEnded()
     {
         movementState = MovementState.Default;
+        canChangeLinearDamping = true;
+        linearDamping = defaultLinearDamping;
+    }
+
+    private void OnStartedRunning()
+    {
+        curSpeed = run.runSpeed;
+    }
+
+    private void OnStoppedRunning()
+    {
+        curSpeed = movement != null ? movement.normalSpeed : 0f;
     }
 
 
@@ -64,6 +97,11 @@ public class MovementManager : MonoBehaviour
             dash.onDashStarted += OnDashStarted;
             dash.onDashEnded += OnDashEnded;
         }
+        if (run != null)
+        {
+            run.onStartedRunning += OnStartedRunning;
+            run.onStoppedRunning += OnStoppedRunning;
+        }
     }
 
     private void OnDisable()
@@ -72,6 +110,11 @@ public class MovementManager : MonoBehaviour
         {
             dash.onDashStarted -= OnDashStarted;
             dash.onDashEnded -= OnDashEnded;
+        }
+        if(run != null)
+        {
+            run.onStartedRunning -= OnStartedRunning;
+            run.onStoppedRunning -= OnStoppedRunning;
         }
     }
 
